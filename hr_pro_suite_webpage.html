@@ -1,0 +1,2195 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <title>HR Pro Suite</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <!-- Tailwind CSS & Font -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <!-- Vue 3 -->
+  <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+  
+  <style>
+    body {
+      font-family: 'Sarabun', sans-serif;
+    }
+    .custom-scrollbar::-webkit-scrollbar {
+      width: 5px;
+      height: 5px;
+    }
+    .custom-scrollbar::-webkit-scrollbar-track {
+      background: transparent;
+    }
+    .custom-scrollbar::-webkit-scrollbar-thumb {
+      background: #cbd5e1;
+      border-radius: 99px;
+    }
+  </style>
+</head>
+<body class="bg-slate-50 text-slate-800 antialiased min-h-screen">
+
+  <div id="app" class="flex min-h-screen">
+    
+    <!-- 1. LOGIN SCREEN VIEW -->
+    <div v-if="!isLoggedIn" class="min-h-screen w-full flex items-center justify-center p-4 bg-gradient-to-tr from-indigo-50 via-slate-50 to-purple-50">
+      <div class="bg-white p-8 rounded-3xl shadow-2xl max-w-md w-full border border-slate-100 relative overflow-hidden">
+        <div class="absolute -top-10 -right-10 w-32 h-32 bg-indigo-600/10 rounded-full blur-3xl"></div>
+        <div class="absolute -bottom-10 -left-10 w-32 h-32 bg-purple-600/10 rounded-full blur-3xl"></div>
+
+        <div class="text-center mb-8">
+          <div class="inline-flex p-3 bg-indigo-600 text-white rounded-2xl mb-4 shadow-lg shadow-indigo-600/20">
+            <i data-lucide="shield-alert" class="w-8 h-8"></i>
+          </div>
+          <h2 class="text-2xl font-bold tracking-tight text-slate-900">HR Pro Suite</h2>
+          <p class="text-xs text-slate-500 mt-1">ล็อกอินเข้าใช้งานตามสิทธิ์ในบัญชีระบบ</p>
+        </div>
+
+        <form @submit.prevent="handleLoginSubmit" class="space-y-5">
+          <div>
+            <label class="block text-[11px] font-bold uppercase tracking-wider mb-1.5 text-slate-600">รหัสผู้ใช้หรือ ID พนักงาน</label>
+            <input type="text" v-model="loginForm.username" class="w-full px-4 py-3 border border-slate-200 bg-slate-50 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 text-xs" placeholder="เช่น admin หรือ E001" required />
+          </div>
+
+          <div>
+            <label class="block text-[11px] font-bold uppercase tracking-wider mb-1.5 text-slate-600">รหัสผ่าน (Password)</label>
+            <input type="password" v-model="loginForm.password" class="w-full px-4 py-3 border border-slate-200 bg-slate-50 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 text-xs" placeholder="ป้อนรหัสผ่านเข้าใช้" required />
+          </div>
+
+          <button type="submit" :disabled="loginLoading" class="w-full py-3.5 bg-gradient-to-r from-indigo-600 to-purple-600 text-white font-bold rounded-xl shadow-lg transition flex justify-center items-center gap-2 text-xs">
+            <span v-if="loginLoading" class="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></span>
+            <span>{{ loginLoading ? 'กำลังตรวจสอบข้อมูล...' : 'เข้าสู่ระบบอย่างปลอดภัย' }}</span>
+          </button>
+        </form>
+
+        <div class="mt-8 pt-6 border-t border-slate-100 text-xs text-slate-500 space-y-2">
+          <p class="font-semibold text-slate-700">💡 บัญชีสำหรับทดสอบระดับสิทธิ์:</p>
+          <div class="bg-slate-50 p-3 rounded-xl space-y-1 font-mono text-[10px]">
+            <p>🔑 <span class="font-bold text-indigo-600">Admin (ผู้จัดการ):</span> admin / admin123</p>
+            <p>🔑 <span class="font-bold text-purple-600">พนักงาน (สิทธิ์เกี่ยวข้องตนเอง):</span> E001 / emp123 (หรือ E002 - E005)</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 2. MAIN SYSTEM CORE VIEW -->
+    <template v-else>
+      <!-- SIDEBAR -->
+      <aside class="w-72 bg-white border-r border-slate-100 flex flex-col sticky top-0 h-screen z-20 shadow-sm">
+        <div class="p-5 flex items-center justify-between border-b border-slate-50">
+          <div class="flex items-center gap-2.5">
+            <div class="p-2 bg-indigo-600 text-white rounded-xl shadow-md shadow-indigo-600/20">
+              <i data-lucide="shield-alert" class="w-5 h-5"></i>
+            </div>
+            <div>
+              <h1 class="font-extrabold text-slate-900 tracking-tight text-sm">HR Pro Suite</h1>
+              <span class="text-[9px] text-slate-400 font-bold uppercase">Enterprise Portal</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Scrollable Sidebar - 25 Modules Grouped -->
+        <div class="flex-1 overflow-y-auto px-4 py-4 space-y-4 custom-scrollbar">
+          <div v-for="group in menuGroups" :key="group.title" class="space-y-1">
+            <h3 class="px-3 text-[10px] font-extrabold text-slate-400 uppercase tracking-wider mb-1.5">{{ group.title }}</h3>
+            
+            <button
+              v-for="item in group.items"
+              :key="item.name"
+              v-show="item.visibleFor.includes(userRole)"
+              @click="activeTab = item.name; updateLucideIcons()"
+              :class="[
+                'w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-semibold transition duration-150',
+                activeTab === item.name 
+                  ? 'bg-gradient-to-r from-indigo-600 to-purple-600 text-white shadow-md' 
+                  : 'text-slate-500 hover:bg-slate-50 hover:text-slate-900'
+              ]"
+            >
+              <i :data-lucide="item.icon" class="w-4 h-4"></i>
+              <span>{{ item.name }}</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Sidebar Profile Footer -->
+        <div class="p-4 border-t border-slate-100 bg-slate-50/50 flex items-center justify-between">
+          <div class="flex items-center gap-2.5">
+            <div class="w-9 h-9 rounded-xl bg-indigo-100 text-indigo-600 flex items-center justify-center font-bold text-xs uppercase">
+              {{ currentUser.Name ? currentUser.Name.charAt(0) : 'U' }}
+            </div>
+            <div class="min-w-0">
+              <h4 class="text-xs font-bold text-slate-800 truncate">{{ currentUser.Name }}</h4>
+              <span class="text-[9px] text-slate-400 font-mono">{{ userRole === 'admin' ? '🔥 Admin' : '👤 ' + currentUser.ID }}</span>
+            </div>
+          </div>
+          <button @click="handleLogout" class="p-1.5 hover:bg-red-50 text-red-500 rounded-lg transition" title="ออกจากระบบ">
+            <i data-lucide="log-out" class="w-4 h-4"></i>
+          </button>
+        </div>
+      </aside>
+
+      <!-- CONTENT SPACE WRAPPER -->
+      <main class="flex-1 flex flex-col min-w-0">
+        
+        <!-- Status Bar Header -->
+        <header class="h-16 border-b border-slate-100 bg-white px-8 flex items-center justify-between sticky top-0 z-10">
+          <div class="flex items-center gap-2 text-xs font-bold text-slate-400">
+            <span>HR Pro Suite</span>
+            <span>/</span>
+            <span class="text-indigo-600 uppercase tracking-wider font-semibold">{{ activeTab }}</span>
+          </div>
+
+          <div class="flex items-center gap-4">
+            <div class="flex items-center gap-2 bg-emerald-50 px-3 py-1.5 rounded-full border border-emerald-100">
+              <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+              <span class="text-[9px] font-bold text-emerald-700">Google Sheet Connected</span>
+            </div>
+            <button @click="refreshAllData" class="p-2 border rounded-xl hover:bg-slate-50 transition" title="ซิงค์ข้อมูล">
+              <i data-lucide="refresh-cw" class="w-4 h-4 text-slate-600"></i>
+            </button>
+          </div>
+        </header>
+
+        <!-- PORTAL WORKSPACE CONTENT -->
+        <div class="p-8 flex-1 overflow-y-auto custom-scrollbar">
+
+          <!-- 1. Dashboard -->
+          <div v-if="activeTab === 'Dashboard'" class="space-y-8">
+            <div class="grid grid-cols-2 lg:grid-cols-4 gap-6">
+              <div class="bg-white p-5 rounded-2xl border border-slate-100 shadow-sm">
+                <span class="text-xs font-bold text-slate-400">พนักงานในองค์กร</span>
+                <h2 class="text-3xl font-extrabold mt-1 text-slate-900">{{ employees.length }} คน</h2>
+              </div>
+              <div class="bg-white p-5 rounded-2xl border border-slate-100 shadow-sm">
+                <span class="text-xs font-bold text-slate-400">แผนกงานทั้งหมด</span>
+                <h2 class="text-3xl font-extrabold mt-1 text-slate-900">{{ departments.length }} แผนก</h2>
+              </div>
+              <div class="bg-white p-5 rounded-2xl border border-slate-100 shadow-sm">
+                <span class="text-xs font-bold text-slate-400">คำร้องลารอพิจารณา</span>
+                <h2 class="text-3xl font-extrabold mt-1 text-amber-500">{{ filteredLeaves.filter(l => ['รอพิจารณา', 'รออนุมัติ'].includes(l.Status)).length }} รายการ</h2>
+              </div>
+              <div class="bg-white p-5 rounded-2xl border border-slate-100 shadow-sm">
+                <span class="text-xs font-bold text-slate-400">สิทธิเบิกค่าใช้จ่าย (เดือนนี้)</span>
+                <h2 class="text-3xl font-extrabold mt-1 text-indigo-600">฿{{ filteredExpenses.reduce((acc, e) => acc + (Number(e.Amount) || 0), 0).toLocaleString() }}</h2>
+              </div>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+              <div class="lg:col-span-2 bg-white p-6 rounded-2xl border border-slate-100">
+                <h3 class="text-sm font-bold text-slate-800 mb-4 flex items-center gap-2">
+                  <i data-lucide="clock" class="w-4 h-4 text-indigo-500"></i> ลงเวลาปฏิบัติงานด่วนวันนี้
+                </h3>
+                <div class="grid grid-cols-2 gap-4">
+                  <button @click="saveAttendance('เช็คอิน (ปกติ)')" class="p-4 bg-emerald-50 hover:bg-emerald-100/80 rounded-xl border border-emerald-100 text-left transition">
+                    <h4 class="font-bold text-emerald-800 text-xs">🕒 เช็คอินงาน (Check-In)</h4>
+                    <p class="text-[10px] text-emerald-600 mt-1">เวลาปัจจุบัน: {{ currentTime }} น.</p>
+                  </button>
+                  <button @click="saveAttendance('เช็คเอาท์ (ปกติ)')" class="p-4 bg-slate-50 hover:bg-slate-100 rounded-xl border border-slate-100 text-left transition">
+                    <h4 class="font-bold text-slate-700 text-xs">🚪 เช็คเอาท์งาน (Check-Out)</h4>
+                    <p class="text-[10px] text-slate-500 mt-1">บันทึกความสมบูรณ์การส่งงาน</p>
+                  </button>
+                </div>
+              </div>
+
+              <div class="bg-white p-6 rounded-2xl border border-slate-100">
+                <h3 class="text-sm font-bold text-slate-800 mb-4 flex items-center gap-1.5">
+                  <i data-lucide="megaphone" class="w-4 h-4 text-indigo-600"></i> ประกาศบอร์ดข่าวสาร HR
+                </h3>
+                <div v-for="ann in announcements.slice(0, 1)" :key="ann.ID" class="p-3.5 bg-indigo-50/50 rounded-xl border border-indigo-100">
+                  <h5 class="text-xs font-bold text-slate-800">{{ ann.Title }}</h5>
+                  <p class="text-[10px] text-slate-500 mt-1 line-clamp-2">{{ ann.Details }}</p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- 2. พนักงาน -->
+          <div v-if="activeTab === 'พนักงาน'" class="space-y-6">
+            <div class="flex justify-between items-center bg-white p-4 rounded-xl border">
+              <h3 class="text-sm font-bold text-slate-800">ทำเนียบรายชื่อพนักงานทั้งหมด</h3>
+              <button @click="openModal('employee', 'add')" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-xs font-bold flex items-center gap-1">
+                <i data-lucide="plus" class="w-4 h-4"></i> เพิ่มข้อมูลพนักงานใหม่
+              </button>
+            </div>
+            <div class="bg-white rounded-2xl border overflow-hidden">
+              <table class="w-full text-left text-xs">
+                <thead class="bg-slate-50 font-bold text-slate-400 border-b">
+                  <tr>
+                    <th class="p-4">รหัสพนักงาน</th>
+                    <th class="p-4">ชื่อ-นามสกุล</th>
+                    <th class="p-4">แผนก</th>
+                    <th class="p-4">ตำแหน่ง</th>
+                    <th class="p-4">วันที่เริ่มงาน</th>
+                    <th class="p-4">เบอร์โทร</th>
+                    <th class="p-4">สิทธิ์รหัสผ่าน</th>
+                    <th class="p-4 text-center">จัดการ</th>
+                  </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-100">
+                  <tr v-for="emp in employees" :key="emp.ID" class="hover:bg-slate-50/50">
+                    <td class="p-4 font-mono font-bold text-indigo-600">{{ emp.ID }}</td>
+                    <td class="p-4 font-bold">{{ emp.Name }}</td>
+                    <td class="p-4">{{ emp.Department }}</td>
+                    <td class="p-4">{{ emp.Position }}</td>
+                    <td class="p-4 font-mono">{{ emp.StartDate }}</td>
+                    <td class="p-4 font-mono">{{ emp.Phone }}</td>
+                    <td class="p-4 font-mono text-slate-400">{{ emp.Password }}</td>
+                    <td class="p-4 text-center">
+                      <div class="flex justify-center gap-2">
+                        <button @click="openModal('employee', 'edit', emp)" class="p-1.5 hover:bg-slate-100 border rounded-lg"><i data-lucide="edit-2" class="w-3.5 h-3.5"></i></button>
+                        <button @click="deleteItem('Employees', 'ID', emp.ID)" class="p-1.5 hover:bg-red-50 text-red-500 border rounded-lg"><i data-lucide="trash-2" class="w-3.5 h-3.5"></i></button>
+                      </div>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- 3. แผนก -->
+          <div v-if="activeTab === 'แผนก'" class="space-y-6">
+            <div class="flex justify-between items-center bg-white p-4 rounded-xl border">
+              <h3 class="text-sm font-bold text-slate-800">โครงสร้างแผนกงานภายใน</h3>
+              <button @click="openModal('department', 'add')" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-xs font-bold flex items-center gap-1">
+                <i data-lucide="plus" class="w-4 h-4"></i> เพิ่มแผนกใหม่
+              </button>
+            </div>
+            <div class="bg-white rounded-2xl border overflow-hidden">
+              <table class="w-full text-left text-xs">
+                <thead class="bg-slate-50 font-bold text-slate-400 border-b">
+                  <tr>
+                    <th class="p-4">รหัสแผนก</th>
+                    <th class="p-4">ชื่อแผนก</th>
+                    <th class="p-4">รายละเอียด</th>
+                    <th class="p-4 text-center">จัดการ</th>
+                  </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-100">
+                  <tr v-for="dept in departments" :key="dept.Code" class="hover:bg-slate-50/50">
+                    <td class="p-4 font-mono font-bold text-indigo-600">{{ dept.Code }}</td>
+                    <td class="p-4 font-bold">{{ dept.Name }}</td>
+                    <td class="p-4 text-slate-500">{{ dept.Details }}</td>
+                    <td class="p-4 text-center">
+                      <div class="flex justify-center gap-2">
+                        <button @click="openModal('department', 'edit', dept)" class="p-1.5 hover:bg-slate-100 border rounded-lg"><i data-lucide="edit-2" class="w-3.5 h-3.5"></i></button>
+                        <button @click="deleteItem('Departments', 'Code', dept.Code)" class="p-1.5 hover:bg-red-50 text-red-500 border rounded-lg"><i data-lucide="trash-2" class="w-3.5 h-3.5"></i></button>
+                      </div>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- 4. ตำแหน่งงาน -->
+          <div v-if="activeTab === 'ตำแหน่งงาน'" class="space-y-6">
+            <div class="flex justify-between items-center bg-white p-4 rounded-xl border">
+              <h3 class="text-sm font-bold text-slate-800">บัญชีตำแหน่งงานและกระบอกเงินเดือน</h3>
+              <button @click="openModal('position', 'add')" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-xs font-bold">เพิ่มตำแหน่งงานใหม่</button>
+            </div>
+            <div class="bg-white rounded-2xl border overflow-hidden">
+              <table class="w-full text-left text-xs">
+                <thead class="bg-slate-50 font-bold text-slate-400 border-b">
+                  <tr>
+                    <th class="p-4">รหัสตำแหน่ง</th>
+                    <th class="p-4">ชื่อตำแหน่ง</th>
+                    <th class="p-4">ระดับ</th>
+                    <th class="p-4">แผนก</th>
+                    <th class="p-4">ฐานเงินเดือนต่ำสุด</th>
+                    <th class="p-4">ฐานเงินเดือนสูงสุด</th>
+                    <th class="p-4 text-center">จัดการ</th>
+                  </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-100">
+                  <tr v-for="pos in positions" :key="pos.ID" class="hover:bg-slate-50/50">
+                    <td class="p-4 font-mono font-bold">{{ pos.ID }}</td>
+                    <td class="p-4 font-bold text-slate-800">{{ pos.Title }}</td>
+                    <td class="p-4">{{ pos.Level }}</td>
+                    <td class="p-4">{{ pos.Department }}</td>
+                    <td class="p-4 font-mono">฿{{ Number(pos.MinSalary).toLocaleString() }}</td>
+                    <td class="p-4 font-mono text-emerald-600">฿{{ Number(pos.MaxSalary).toLocaleString() }}</td>
+                    <td class="p-4 text-center">
+                      <div class="flex justify-center gap-2">
+                        <button @click="openModal('position', 'edit', pos)" class="p-1.5 hover:bg-slate-100 border rounded-lg"><i data-lucide="edit-2" class="w-3.5 h-3.5"></i></button>
+                        <button @click="deleteItem('Positions', 'ID', pos.ID)" class="p-1.5 hover:bg-red-50 text-red-500 border rounded-lg"><i data-lucide="trash-2" class="w-3.5 h-3.5"></i></button>
+                      </div>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- 5. บันทึกเวลาเข้างาน -->
+          <div v-if="activeTab === 'บันทึกเวลาเข้างาน'" class="space-y-6">
+            <div class="bg-white p-6 rounded-2xl border border-slate-100 flex flex-col md:flex-row justify-between items-center gap-4">
+              <div class="flex items-center gap-3">
+                <div class="p-3 bg-indigo-50 text-indigo-600 rounded-xl"><i data-lucide="clock" class="w-6 h-6"></i></div>
+                <div>
+                  <h4 class="font-extrabold text-sm text-slate-800">ระบบบันทึกเวลาเข้างานแบบระบุพิกัดจีพีเอส</h4>
+                  <p class="text-xs text-slate-400 mt-1">สแกนเวลาเข้าและออกงานเข้า Google Sheet แบบเรียลไทม์</p>
+                </div>
+              </div>
+              <div class="flex gap-2">
+                <button @click="saveAttendance('เช็คอิน (ปกติ)')" class="px-5 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-bold transition">ลงเวลาเช็คอิน (Check-In)</button>
+                <button @click="saveAttendance('เช็คเอาท์ (ปกติ)')" class="px-5 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-bold transition">ลงเวลาเช็คเอาท์ (Check-Out)</button>
+              </div>
+            </div>
+            <div class="bg-white rounded-2xl border overflow-hidden">
+              <table class="w-full text-left text-xs">
+                <thead class="bg-slate-50 font-bold text-slate-400 border-b">
+                  <tr>
+                    <th class="p-4">พนักงาน</th>
+                    <th class="p-4">วันที่ลงเวลา</th>
+                    <th class="p-4">เวลาเข้า</th>
+                    <th class="p-4">เวลาออก</th>
+                    <th class="p-4">สถานะการทำงาน</th>
+                    <th class="p-4 text-center" v-if="userRole === 'admin'">จัดการ</th>
+                  </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-100">
+                  <tr v-for="att in filteredAttendance" :key="att.ID" class="hover:bg-slate-50/50">
+                    <td class="p-4 font-bold">{{ att.EmpName }}</td>
+                    <td class="p-4 font-mono">{{ att.Date }}</td>
+                    <td class="p-4 font-mono font-bold text-emerald-600">{{ att.CheckIn }}</td>
+                    <td class="p-4 font-mono font-bold text-slate-600">{{ att.CheckOut }}</td>
+                    <td class="p-4"><span class="px-2 py-0.5 bg-indigo-50 text-indigo-600 rounded font-bold text-[10px]">{{ att.Status }}</span></td>
+                    <td class="p-4 text-center" v-if="userRole === 'admin'">
+                      <div class="flex justify-center gap-2">
+                        <button @click="openModal('attendance', 'edit', att)" class="p-1 hover:bg-slate-100 border rounded"><i data-lucide="edit-2" class="w-3 h-3"></i></button>
+                        <button @click="deleteItem('Attendance', 'ID', att.ID)" class="p-1 hover:bg-red-50 text-red-500 border rounded"><i data-lucide="trash-2" class="w-3 h-3"></i></button>
+                      </div>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- 6. การลา -->
+          <div v-if="activeTab === 'การลา'" class="space-y-6">
+            <div class="flex justify-between items-center bg-white p-4 rounded-xl border">
+              <h3 class="text-sm font-bold text-slate-800">ส่งใบคำร้องขอลากิจ/ลาพักร้อน/ลาป่วย</h3>
+              <button @click="openModal('leave', 'add')" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-xs font-bold">ยื่นใบขอลางาน</button>
+            </div>
+            <div class="bg-white rounded-2xl border overflow-hidden">
+              <table class="w-full text-left text-xs">
+                <thead class="bg-slate-50 font-bold text-slate-400 border-b">
+                  <tr>
+                    <th class="p-4">พนักงาน</th>
+                    <th class="p-4">ประเภทการลา</th>
+                    <th class="p-4">วันที่เริ่ม</th>
+                    <th class="p-4">วันที่สิ้นสุด</th>
+                    <th class="p-4 text-center">จำนวนวัน</th>
+                    <th class="p-4">เหตุผล</th>
+                    <th class="p-4 text-center">สถานะ</th>
+                    <th class="p-4 text-center">จัดการ</th>
+                  </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-100">
+                  <tr v-for="lv in filteredLeaves" :key="lv.ID" class="hover:bg-slate-50/50">
+                    <td class="p-4 font-bold">{{ lv.EmpName }}</td>
+                    <td class="p-4 text-indigo-600 font-bold">{{ lv.Type }}</td>
+                    <td class="p-4 font-mono">{{ lv.StartDate }}</td>
+                    <td class="p-4 font-mono">{{ lv.EndDate }}</td>
+                    <td class="p-4 text-center font-bold font-mono">{{ lv.Days }} วัน</td>
+                    <td class="p-4 text-slate-500">{{ lv.Reason }}</td>
+                    <td class="p-4 text-center">
+                      <span :class="lv.Status === 'อนุมัติแล้ว' ? 'bg-green-50 text-green-600' : 'bg-amber-50 text-amber-600'" class="px-2.5 py-0.5 rounded-full font-bold text-[10px]">
+                        {{ lv.Status }}
+                      </span>
+                    </td>
+                    <td class="p-4 text-center">
+                      <div class="flex justify-center gap-1.5">
+                        <!-- Admin can approve/deny -->
+                        <template v-if="userRole === 'admin' && ['รอพิจารณา', 'รออนุมัติ'].includes(lv.Status)">
+                          <button @click="approveLeave(lv.ID, 'อนุมัติแล้ว')" class="p-1 bg-green-50 text-green-600 rounded border hover:bg-green-100" title="อนุมัติ"><i data-lucide="check" class="w-3.5 h-3.5"></i></button>
+                          <button @click="approveLeave(lv.ID, 'ปฏิเสธ')" class="p-1 bg-red-50 text-red-500 rounded border hover:bg-red-100" title="ปฏิเสธ"><i data-lucide="x" class="w-3.5 h-3.5"></i></button>
+                        </template>
+                        <!-- Only allow edit/delete if owner + pending -->
+                        <button v-if="canEditItem(lv, 'leave')" @click="openModal('leave', 'edit', lv)" class="p-1 hover:bg-slate-100 border rounded"><i data-lucide="edit-2" class="w-3.5 h-3.5"></i></button>
+                        <button v-if="canDeleteItem(lv, 'leave')" @click="deleteItem('Leaves', 'ID', lv.ID)" class="p-1 hover:bg-red-50 text-red-500 border rounded"><i data-lucide="trash-2" class="w-3.5 h-3.5"></i></button>
+                      </div>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- 7. เงินเดือน (Payroll) -->
+          <div v-if="activeTab === 'เงินเดือน (Payroll)'" class="space-y-6">
+            <div class="flex justify-between items-center bg-white p-4 rounded-xl border">
+              <h3 class="text-sm font-bold text-slate-800">สรุปสลิปจ่ายเงินเดือนพนักงานในรอบงวดเดือน</h3>
+              <button @click="openModal('payroll', 'add')" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-xs font-bold" v-if="userRole === 'admin'">คำนวณเงินเดือนงวดใหม่</button>
+            </div>
+            <div class="bg-white rounded-2xl border overflow-hidden">
+              <table class="w-full text-left text-xs">
+                <thead class="bg-slate-50 font-bold text-slate-400 border-b">
+                  <tr>
+                    <th class="p-4">Slip ID</th>
+                    <th class="p-4">งวดบัญชี</th>
+                    <th class="p-4">พนักงาน</th>
+                    <th class="p-4">เงินเดือนพื้นฐาน</th>
+                    <th class="p-4">OT</th>
+                    <th class="p-4">โบนัส (+)</th>
+                    <th class="p-4">หักประกันสังคม (-)</th>
+                    <th class="p-4">รับสุทธิ</th>
+                    <th class="p-4 text-center">จัดการ / ส่งต่อ</th>
+                  </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-100">
+                  <tr v-for="p in filteredPayroll" :key="p.SlipID" class="hover:bg-slate-50/50">
+                    <td class="p-4 font-mono font-bold">{{ p.SlipID }}</td>
+                    <td class="p-4 font-mono text-slate-400 text-[10px]">{{ p.Period }}</td>
+                    <td class="p-4 font-bold">{{ p.EmpName }}</td>
+                    <td class="p-4 font-mono">฿{{ Number(p.BaseSalary).toLocaleString() }}</td>
+                    <td class="p-4 font-mono text-emerald-600">+฿{{ Number(p.OT).toLocaleString() }}</td>
+                    <td class="p-4 font-mono text-emerald-600">+฿{{ Number(p.Bonus).toLocaleString() }}</td>
+                    <td class="p-4 font-mono text-red-500">-฿{{ Number(p.Deductions).toLocaleString() }}</td>
+                    <td class="p-4 font-mono font-black text-indigo-600">฿{{ Number(p.NetSalary).toLocaleString() }}</td>
+                    <td class="p-4 text-center">
+                      <div class="flex justify-center gap-1.5">
+                        <button @click="sendLineAlert(p)" class="px-2.5 py-1 bg-green-50 border border-green-200 text-green-700 rounded-lg text-[9px] font-extrabold hover:bg-green-100">
+                          ส่งสลิป LINE
+                        </button>
+                        <button v-if="userRole === 'admin'" @click="openModal('payroll', 'edit', p)" class="p-1 hover:bg-slate-100 border rounded"><i data-lucide="edit-2" class="w-3 h-3"></i></button>
+                        <button v-if="userRole === 'admin'" @click="deleteItem('Payroll', 'SlipID', p.SlipID)" class="p-1 hover:bg-red-50 text-red-500 border rounded"><i data-lucide="trash-2" class="w-3 h-3"></i></button>
+                      </div>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- 8. ค่าล่วงเวลา (OT) -->
+          <div v-if="activeTab === 'ค่าล่วงเวลา (OT)'" class="space-y-6">
+            <div class="flex justify-between items-center bg-white p-4 rounded-xl border">
+              <h3 class="text-sm font-bold text-slate-800">ส่งคำร้องขอสถิติล่วงเวลาการปฏิบัติงาน (OT)</h3>
+              <button @click="openModal('ot', 'add')" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-xs font-bold">ยื่นคำขอ OT ใหม่</button>
+            </div>
+            <div class="bg-white rounded-2xl border overflow-hidden">
+              <table class="w-full text-left text-xs">
+                <thead class="bg-slate-50 font-bold text-slate-400 border-b">
+                  <tr>
+                    <th class="p-4">พนักงาน</th>
+                    <th class="p-4">วันที่ทำ OT</th>
+                    <th class="p-4 text-center">จำนวนชั่วโมง</th>
+                    <th class="p-4">เหตุผล/รายละเอียดงาน</th>
+                    <th class="p-4 text-center">สถานะ</th>
+                    <th class="p-4 text-center">จัดการ</th>
+                  </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-100">
+                  <tr v-for="o in filteredOts" :key="o.ID" class="hover:bg-slate-50/50">
+                    <td class="p-4 font-bold">{{ o.EmpName }}</td>
+                    <td class="p-4 font-mono">{{ o.Date }}</td>
+                    <td class="p-4 text-center font-bold text-indigo-600">{{ o.Hours }} ชม.</td>
+                    <td class="p-4 text-slate-500">{{ o.Reason }}</td>
+                    <td class="p-4 text-center">
+                      <span :class="o.Status === 'อนุมัติแล้ว' ? 'bg-green-50 text-green-700' : 'bg-amber-50 text-amber-700'" class="px-2.5 py-0.5 rounded-full font-bold text-[10px]">
+                        {{ o.Status }}
+                      </span>
+                    </td>
+                    <td class="p-4 text-center">
+                      <div class="flex justify-center gap-1.5">
+                        <template v-if="userRole === 'admin' && o.Status === 'รอพิจารณา'">
+                          <button @click="approveOT(o.ID, 'อนุมัติแล้ว')" class="p-1 bg-green-50 text-green-600 rounded border hover:bg-green-100" title="อนุมัติ"><i data-lucide="check" class="w-3.5 h-3.5"></i></button>
+                          <button @click="approveOT(o.ID, 'ปฏิเสธ')" class="p-1 bg-red-50 text-red-500 rounded border hover:bg-red-100" title="ปฏิเสธ"><i data-lucide="x" class="w-3.5 h-3.5"></i></button>
+                        </template>
+                        <button v-if="canEditItem(o, 'ot')" @click="openModal('ot', 'edit', o)" class="p-1 hover:bg-slate-100 border rounded"><i data-lucide="edit-2" class="w-3.5 h-3.5"></i></button>
+                        <button v-if="canDeleteItem(o, 'ot')" @click="deleteItem('Ots', 'ID', o.ID)" class="p-1 hover:bg-red-50 text-red-500 border rounded"><i data-lucide="trash-2" class="w-3.5 h-3.5"></i></button>
+                      </div>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- 9. จัดกะการทำงาน -->
+          <div v-if="activeTab === 'จัดกะการทำงาน'" class="space-y-6">
+            <div class="flex justify-between items-center bg-white p-4 rounded-xl border">
+              <h3 class="text-sm font-bold text-slate-800">ตารางจัดกะและเวรทำงานพนักงาน</h3>
+              <button @click="openModal('shift', 'add')" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-xs font-bold" v-if="userRole === 'admin'">จัดตารางกะใหม่</button>
+            </div>
+            <div class="bg-white rounded-2xl border overflow-hidden">
+              <table class="w-full text-left text-xs">
+                <thead class="bg-slate-50 font-bold text-slate-400 border-b">
+                  <tr>
+                    <th class="p-4">พนักงาน</th>
+                    <th class="p-4">วันที่ปฏิบัติงาน</th>
+                    <th class="p-4">กะ</th>
+                    <th class="p-4">ช่วงเวลาทำงาน</th>
+                    <th class="p-4">หมายเหตุ</th>
+                    <th class="p-4 text-center" v-if="userRole === 'admin'">จัดการ</th>
+                  </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-100">
+                  <tr v-for="sh in filteredShifts" :key="sh.ID" class="hover:bg-slate-50/50">
+                    <td class="p-4 font-bold">{{ sh.EmpName }}</td>
+                    <td class="p-4 font-mono">{{ sh.Date }}</td>
+                    <td class="p-4"><span class="px-2.5 py-1 rounded bg-indigo-50 text-indigo-700 font-bold">{{ sh.Shift }}</span></td>
+                    <td class="p-4 font-mono font-bold">{{ sh.Time }}</td>
+                    <td class="p-4 text-slate-500">{{ sh.Note }}</td>
+                    <td class="p-4 text-center" v-if="userRole === 'admin'">
+                      <div class="flex justify-center gap-2">
+                        <button @click="openModal('shift', 'edit', sh)" class="p-1 hover:bg-slate-100 border rounded"><i data-lucide="edit-2" class="w-3 h-3"></i></button>
+                        <button @click="deleteItem('Shifts', 'ID', sh.ID)" class="p-1 hover:bg-red-50 text-red-500 border rounded"><i data-lucide="trash-2" class="w-3 h-3"></i></button>
+                      </div>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- 10. สรรหาพนักงาน -->
+          <div v-if="activeTab === 'สรรหาพนักงาน'" class="space-y-6">
+            <div class="flex justify-between items-center bg-white p-4 rounded-xl border">
+              <h3 class="text-sm font-bold text-slate-800">รายการงานที่เปิดรับสมัครพนักงาน</h3>
+              <button @click="openModal('recruitment', 'add')" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-xs font-bold" v-if="userRole === 'admin'">เพิ่มประกาศรับสมัครงาน</button>
+            </div>
+            <div class="bg-white rounded-2xl border overflow-hidden">
+              <table class="w-full text-left text-xs">
+                <thead class="bg-slate-50 font-bold text-slate-400 border-b">
+                  <tr>
+                    <th class="p-4">ID</th>
+                    <th class="p-4">ตำแหน่งงาน</th>
+                    <th class="p-4">แผนก</th>
+                    <th class="p-4 text-center">จำนวนเปิดรับ</th>
+                    <th class="p-4 text-center">สถานะ</th>
+                    <th class="p-4 text-center" v-if="userRole === 'admin'">จัดการ</th>
+                  </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-100">
+                  <tr v-for="rec in recruitments" :key="rec.ID" class="hover:bg-slate-50/50">
+                    <td class="p-4 font-mono">{{ rec.ID }}</td>
+                    <td class="p-4 font-bold text-slate-800">{{ rec.JobTitle }}</td>
+                    <td class="p-4">{{ rec.Department }}</td>
+                    <td class="p-4 text-center font-bold">{{ rec.Openings }} อัตรา</td>
+                    <td class="p-4 text-center">
+                      <span class="px-2 py-0.5 bg-emerald-50 text-emerald-700 rounded-full font-bold text-[10px]">{{ rec.Status }}</span>
+                    </td>
+                    <td class="p-4 text-center" v-if="userRole === 'admin'">
+                      <div class="flex justify-center gap-2">
+                        <button @click="openModal('recruitment', 'edit', rec)" class="p-1 hover:bg-slate-100 border rounded"><i data-lucide="edit-2" class="w-3.5 h-3.5"></i></button>
+                        <button @click="deleteItem('Recruitments', 'ID', rec.ID)" class="p-1 hover:bg-red-50 text-red-500 border rounded"><i data-lucide="trash-2" class="w-3.5 h-3.5"></i></button>
+                      </div>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- 11. ผู้สมัครงาน (ATS) -->
+          <div v-if="activeTab === 'ผู้สมัครงาน (ATS)'" class="space-y-6">
+            <div class="flex justify-between items-center bg-white p-4 rounded-xl border">
+              <h3 class="text-sm font-bold text-slate-800">ระบบติดตามใบสมัครงาน (Applicant Tracking System)</h3>
+              <button @click="openModal('candidate', 'add')" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-xs font-bold" v-if="userRole === 'admin'">บันทึกประวัติผู้สมัครใหม่</button>
+            </div>
+            
+            <div class="bg-white rounded-2xl border overflow-hidden">
+              <table class="w-full text-left text-xs">
+                <thead class="bg-slate-50 font-bold text-slate-400 border-b">
+                  <tr>
+                    <th class="p-4">รหัสผู้สมัคร</th>
+                    <th class="p-4">ชื่อ-นามสกุล</th>
+                    <th class="p-4">ตำแหน่งงาน</th>
+                    <th class="p-4">เบอร์โทร</th>
+                    <th class="p-4">อีเมล</th>
+                    <th class="p-4">บันทึกเพิ่มเติม</th>
+                    <th class="p-4 text-center">สถานะขั้นคัดเลือก</th>
+                    <th class="p-4 text-center" v-if="userRole === 'admin'">จัดการ</th>
+                  </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-100">
+                  <tr v-for="cand in candidates" :key="cand.ID" class="hover:bg-slate-50/50">
+                    <td class="p-4 font-mono font-bold">{{ cand.ID }}</td>
+                    <td class="p-4 font-bold">{{ cand.Name }}</td>
+                    <td class="p-4">{{ cand.JobTitle }}</td>
+                    <td class="p-4 font-mono">{{ cand.Phone }}</td>
+                    <td class="p-4 font-mono">{{ cand.Email }}</td>
+                    <td class="p-4 text-slate-500">{{ cand.Note }}</td>
+                    <td class="p-4 text-center">
+                      <select v-model="cand.Status" @change="updateCandidateStatus(cand.ID, cand.Status)" :disabled="userRole !== 'admin'" class="p-1 border rounded text-xs bg-white">
+                        <option value="ใบสมัครเข้าใหม่">ใบสมัครเข้าใหม่</option>
+                        <option value="ผ่านคัดเลือกสัมภาษณ์">ผ่านคัดเลือกสัมภาษณ์</option>
+                        <option value="เสนอสัญญาจ้างงาน (Offer)">เสนอสัญญาจ้างงาน (Offer)</option>
+                      </select>
+                    </td>
+                    <td class="p-4 text-center" v-if="userRole === 'admin'">
+                      <div class="flex justify-center gap-2">
+                        <button @click="openModal('candidate', 'edit', cand)" class="p-1 hover:bg-slate-100 border rounded"><i data-lucide="edit-2" class="w-3.5 h-3.5"></i></button>
+                        <button @click="deleteItem('Candidates', 'ID', cand.ID)" class="p-1 hover:bg-red-50 text-red-500 border rounded"><i data-lucide="trash-2" class="w-3.5 h-3.5"></i></button>
+                      </div>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- 12. ปฐมนิเทศพนักงานใหม่ -->
+          <div v-if="activeTab === 'ปฐมนิเทศพนักงานใหม่'" class="space-y-6">
+            <div class="flex justify-between items-center bg-white p-4 rounded-xl border">
+              <h3 class="text-sm font-bold text-slate-800">ขั้นตอน Onboarding พนักงานรับเข้าใหม่</h3>
+              <button @click="openModal('onboarding', 'add')" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-xs font-bold" v-if="userRole === 'admin'">เพิ่มกระบวนการปฐมนิเทศ</button>
+            </div>
+            <div class="bg-white rounded-2xl border overflow-hidden">
+              <table class="w-full text-left text-xs">
+                <thead class="bg-slate-50 font-bold text-slate-400 border-b">
+                  <tr>
+                    <th class="p-4">พนักงาน</th>
+                    <th class="p-4">ขั้นตอนปฐมนิเทศ</th>
+                    <th class="p-4 text-center">สถานะขั้นตอน</th>
+                    <th class="p-4 text-center">จัดการ</th>
+                  </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-100">
+                  <tr v-for="onb in filteredOnboardings" :key="onb.ID" class="hover:bg-slate-50/50">
+                    <td class="p-4 font-bold">{{ onb.EmpName }}</td>
+                    <td class="p-4">{{ onb.Step }}</td>
+                    <td class="p-4 text-center">
+                      <button @click="toggleOnboardingStatus(onb.ID)" :disabled="userRole !== 'admin' && onb.EmpName !== currentUser.Name" class="px-3 py-1 rounded-lg border text-xs font-bold" :class="onb.Status === 'สำเร็จ' ? 'bg-green-50 text-green-700 border-green-200' : 'bg-amber-50 text-amber-700 border-amber-200'">
+                        {{ onb.Status }}
+                      </button>
+                    </td>
+                    <td class="p-4 text-center">
+                      <div class="flex justify-center gap-2">
+                        <button v-if="userRole === 'admin' || onb.EmpName === currentUser.Name" @click="openModal('onboarding', 'edit', onb)" class="p-1 hover:bg-slate-100 border rounded"><i data-lucide="edit-2" class="w-3.5 h-3.5"></i></button>
+                        <button v-if="userRole === 'admin'" @click="deleteItem('Onboardings', 'ID', onb.ID)" class="p-1 hover:bg-red-50 text-red-500 border rounded"><i data-lucide="trash-2" class="w-3.5 h-3.5"></i></button>
+                      </div>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- 13. อบรมและพัฒนา -->
+          <div v-if="activeTab === 'อบรมและพัฒนา'" class="space-y-6">
+            <div class="flex justify-between items-center bg-white p-4 rounded-xl border">
+              <h3 class="text-sm font-bold text-slate-800">คอร์สอบรมยกระดับทักษะภายในองค์กร</h3>
+              <button @click="openModal('training', 'add')" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-xs font-bold" v-if="userRole === 'admin'">เปิดหลักสูตรอบรมใหม่</button>
+            </div>
+            <div class="bg-white rounded-2xl border overflow-hidden">
+              <table class="w-full text-left text-xs">
+                <thead class="bg-slate-50 font-bold text-slate-400 border-b">
+                  <tr>
+                    <th class="p-4">รหัสหลักสูตร</th>
+                    <th class="p-4">หัวข้ออบรม</th>
+                    <th class="p-4">หมวดหมู่คอร์ส</th>
+                    <th class="p-4">วิทยากร</th>
+                    <th class="p-4 text-center">จำนวนชั่วโมงเรียน</th>
+                    <th class="p-4 text-center">สถานะรับสมัคร</th>
+                    <th class="p-4 text-center">การมีส่วนร่วม</th>
+                    <th class="p-4 text-center" v-if="userRole === 'admin'">จัดการ</th>
+                  </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-100">
+                  <tr v-for="t in trainings" :key="t.ID" class="hover:bg-slate-50/50">
+                    <td class="p-4 font-mono">{{ t.ID }}</td>
+                    <td class="p-4 font-bold">{{ t.Title }}</td>
+                    <td class="p-4">{{ t.Category }}</td>
+                    <td class="p-4">{{ t.Instructor }}</td>
+                    <td class="p-4 text-center font-bold">{{ t.Hours }} ชม.</td>
+                    <td class="p-4 text-center"><span class="px-2 py-0.5 rounded bg-indigo-50 text-indigo-700 font-bold text-[10px]">{{ t.Status }}</span></td>
+                    <td class="p-4 text-center">
+                      <button @click="triggerAlert('ลงทะเบียนจองที่นั่งเรียนคอร์สอบรมสำเร็จ')" class="px-2.5 py-1 bg-indigo-600 hover:bg-indigo-700 text-white rounded text-[10px] font-bold">
+                        สมัครเรียน
+                      </button>
+                    </td>
+                    <td class="p-4 text-center" v-if="userRole === 'admin'">
+                      <div class="flex justify-center gap-2">
+                        <button @click="openModal('training', 'edit', t)" class="p-1 hover:bg-slate-100 border rounded"><i data-lucide="edit-2" class="w-3.5 h-3.5"></i></button>
+                        <button @click="deleteItem('Trainings', 'ID', t.ID)" class="p-1 hover:bg-red-50 text-red-500 border rounded"><i data-lucide="trash-2" class="w-3.5 h-3.5"></i></button>
+                      </div>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- 14. ประเมินผลพนักงาน -->
+          <div v-if="activeTab === 'ประเมินผลพนักงาน'" class="space-y-6">
+            <div class="flex justify-between items-center bg-white p-4 rounded-xl border">
+              <h3 class="text-sm font-bold text-slate-800">ผลคะแนนและการประเมินประสิทธิภาพงานพนักงาน</h3>
+              <button @click="openModal('performance', 'add')" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-xs font-bold" v-if="userRole === 'admin'">ลงคะแนนประเมินผลพนักงาน</button>
+            </div>
+            <div class="bg-white rounded-2xl border overflow-hidden">
+              <table class="w-full text-left text-xs">
+                <thead class="bg-slate-50 font-bold text-slate-400 border-b">
+                  <tr>
+                    <th class="p-4">พนักงาน</th>
+                    <th class="p-4">ผู้ประเมิน</th>
+                    <th class="p-4 text-center">คะแนนผลงาน (Quality)</th>
+                    <th class="p-4 text-center">การส่งมอบ (OnTime)</th>
+                    <th class="p-4 text-center">การสื่อสาร (Comm.)</th>
+                    <th class="p-4">ความเห็นเพิ่มเติม</th>
+                    <th class="p-4 text-center" v-if="userRole === 'admin'">จัดการ</th>
+                  </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-100">
+                  <tr v-for="pf in filteredPerformanceEvaluations" :key="pf.ID" class="hover:bg-slate-50/50">
+                    <td class="p-4 font-bold">{{ pf.EmpName }}</td>
+                    <td class="p-4 text-slate-500">{{ pf.Evaluator }}</td>
+                    <td class="p-4 text-center font-bold font-mono">{{ pf.QualityScore }} / 5</td>
+                    <td class="p-4 text-center font-bold font-mono">{{ pf.OnTimeScore }} / 5</td>
+                    <td class="p-4 text-center font-bold font-mono">{{ pf.CommunicationScore }} / 5</td>
+                    <td class="p-4 text-slate-400">{{ pf.ReviewNote }}</td>
+                    <td class="p-4 text-center" v-if="userRole === 'admin'">
+                      <div class="flex justify-center gap-2">
+                        <button @click="openModal('performance', 'edit', pf)" class="p-1 hover:bg-slate-100 border rounded"><i data-lucide="edit-2" class="w-3.5 h-3.5"></i></button>
+                        <button @click="deleteItem('PerformanceEvaluations', 'ID', pf.ID)" class="p-1 hover:bg-red-50 text-red-500 border rounded"><i data-lucide="trash-2" class="w-3.5 h-3.5"></i></button>
+                      </div>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- 15. OKR / KPI -->
+          <div v-if="activeTab === 'OKR / KPI'" class="space-y-6">
+            <div class="flex justify-between items-center bg-white p-4 rounded-xl border">
+              <h3 class="text-sm font-bold text-slate-800">ตารางความสำเร็จเป้าหมาย OKRs / KPIs</h3>
+              <button @click="openModal('okr', 'add')" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-xs font-bold" v-if="userRole === 'admin'">เพิ่มเป้าหมาย OKR ใหม่</button>
+            </div>
+            <div class="bg-white rounded-2xl border overflow-hidden p-6 space-y-6">
+              <div v-for="ok in okrs" :key="ok.ID" class="space-y-2 pb-4 border-b last:border-0 border-slate-100">
+                <div class="flex justify-between items-center text-xs font-bold">
+                  <div>
+                    <span class="text-indigo-600 font-mono text-[10px] bg-indigo-50 px-2 py-0.5 rounded mr-2">{{ ok.ID }}</span>
+                    <span class="text-slate-800">{{ ok.Objective }}</span>
+                  </div>
+                  <div class="flex items-center gap-3">
+                    <span class="text-slate-400">เป้าหมาย: {{ ok.Target }}</span>
+                    <span class="text-indigo-700 font-mono bg-indigo-100 px-2.5 py-0.5 rounded">{{ ok.Progress }}%</span>
+                    <div class="flex gap-1" v-if="userRole === 'admin'">
+                      <button @click="openModal('okr', 'edit', ok)" class="p-1 hover:bg-slate-100 border rounded"><i data-lucide="edit-2" class="w-3 h-3"></i></button>
+                      <button @click="deleteItem('Okrs', 'ID', ok.ID)" class="p-1 hover:bg-red-50 text-red-500 border rounded"><i data-lucide="trash-2" class="w-3 h-3"></i></button>
+                    </div>
+                  </div>
+                </div>
+                <div class="w-full bg-slate-100 h-2.5 rounded-full">
+                  <div class="bg-indigo-600 h-2.5 rounded-full transition-all duration-300" :style="{ width: ok.Progress + '%' }"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- 16. เอกสาร HR -->
+          <div v-if="activeTab === 'เอกสาร HR'" class="space-y-6">
+            <div class="flex justify-between items-center bg-white p-4 rounded-xl border">
+              <h3 class="text-sm font-bold text-slate-800">ดาวน์โหลดเอกสาร สัญญาจ้างงาน และระเบียบวินัย</h3>
+              <button @click="openModal('document', 'add')" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-xs font-bold" v-if="userRole === 'admin'">อัปโหลดเอกสารใหม่</button>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div v-for="doc in documents" :key="doc.ID" class="p-4 bg-white border border-slate-200 rounded-xl flex items-center justify-between hover:bg-slate-50 transition">
+                <div class="flex items-center gap-3">
+                  <div class="p-2.5 bg-red-50 text-red-600 rounded-lg"><i data-lucide="file-text" class="w-5 h-5"></i></div>
+                  <div>
+                    <h4 class="text-xs font-bold text-slate-800">{{ doc.Title }}</h4>
+                    <p class="text-[10px] text-slate-400 mt-1">หมวดหมู่: {{ doc.Category }} • {{ doc.Description }}</p>
+                  </div>
+                </div>
+                <div class="flex items-center gap-1.5">
+                  <a :href="doc.Link" target="_blank" class="p-1.5 border rounded hover:bg-white" title="ดาวน์โหลด"><i data-lucide="download" class="w-4 h-4 text-slate-500"></i></a>
+                  <button v-if="userRole === 'admin'" @click="openModal('document', 'edit', doc)" class="p-1.5 hover:bg-slate-100 border rounded"><i data-lucide="edit-2" class="w-4 h-4 text-slate-600"></i></button>
+                  <button v-if="userRole === 'admin'" @click="deleteItem('Documents', 'ID', doc.ID)" class="p-1.5 hover:bg-red-50 text-red-500 border rounded"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- 17. ทรัพย์สินบริษัท -->
+          <div v-if="activeTab === 'ทรัพย์สินบริษัท'" class="space-y-6">
+            <div class="flex justify-between items-center bg-white p-4 rounded-xl border">
+              <h3 class="text-sm font-bold text-slate-800">บัญชีทรัพย์สิน ทะเบียนคุมอุปกรณ์และเครื่องมือไอที</h3>
+              <button @click="openModal('asset', 'add')" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-xs font-bold" v-if="userRole === 'admin'">ลงทะเบียนทรัพย์สินใหม่</button>
+            </div>
+            <div class="bg-white rounded-2xl border overflow-hidden">
+              <table class="w-full text-left text-xs">
+                <thead class="bg-slate-50 font-bold text-slate-400 border-b">
+                  <tr>
+                    <th class="p-4">รหัสทรัพย์สิน</th>
+                    <th class="p-4">ชื่ออุปกรณ์และสเปก</th>
+                    <th class="p-4">หมวดหมู่</th>
+                    <th class="p-4">ผู้ยืม/ครอบครอง</th>
+                    <th class="p-4">วันที่ส่งมอบ</th>
+                    <th class="p-4 text-center">สถานะ</th>
+                    <th class="p-4 text-center" v-if="userRole === 'admin'">จัดการ</th>
+                  </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-100">
+                  <tr v-for="as in filteredAssets" :key="as.ID" class="hover:bg-slate-50/50">
+                    <td class="p-4 font-mono font-bold">{{ as.ID }}</td>
+                    <td class="p-4 font-bold text-slate-800">{{ as.Name }}</td>
+                    <td class="p-4 text-slate-500">{{ as.Category }}</td>
+                    <td class="p-4">{{ as.Assignee }}</td>
+                    <td class="p-4 font-mono">{{ as.Date }}</td>
+                    <td class="p-4 text-center">
+                      <span class="px-2.5 py-0.5 bg-green-50 text-green-700 rounded-full font-bold text-[10px]">{{ as.Status }}</span>
+                    </td>
+                    <td class="p-4 text-center" v-if="userRole === 'admin'">
+                      <div class="flex justify-center gap-2">
+                        <button @click="openModal('asset', 'edit', as)" class="p-1 hover:bg-slate-100 border rounded"><i data-lucide="edit-2" class="w-3.5 h-3.5"></i></button>
+                        <button @click="deleteItem('Assets', 'ID', as.ID)" class="p-1 hover:bg-red-50 text-red-500 border rounded"><i data-lucide="trash-2" class="w-3.5 h-3.5"></i></button>
+                      </div>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- 18. เบิกค่าใช้จ่าย -->
+          <div v-if="activeTab === 'เบิกค่าใช้จ่าย'" class="space-y-6">
+            <div class="flex justify-between items-center bg-white p-4 rounded-xl border">
+              <h3 class="text-sm font-bold text-slate-800">คำร้องขอเบิกจ่ายเงินสำรองจ่าย (Reimbursements)</h3>
+              <button @click="openModal('expense', 'add')" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-xs font-bold">เขียนคำขอเบิกเงิน</button>
+            </div>
+            <div class="bg-white rounded-2xl border overflow-hidden">
+              <table class="w-full text-left text-xs">
+                <thead class="bg-slate-50 font-bold text-slate-400 border-b">
+                  <tr>
+                    <th class="p-4">รหัสคำขอ</th>
+                    <th class="p-4">ผู้ขอยื่นเรื่อง</th>
+                    <th class="p-4">หมวดหมู่</th>
+                    <th class="p-4">รายละเอียด</th>
+                    <th class="p-4 text-right">ยอดเงินเบิก</th>
+                    <th class="p-4 text-center">สถานะ</th>
+                    <th class="p-4 text-center">จัดการ</th>
+                  </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-100">
+                  <tr v-for="ex in filteredExpenses" :key="ex.ID" class="hover:bg-slate-50/50">
+                    <td class="p-4 font-mono font-bold">{{ ex.ID }}</td>
+                    <td class="p-4 font-bold">{{ ex.Requester }}</td>
+                    <td class="p-4">{{ ex.Category }}</td>
+                    <td class="p-4 text-slate-500">{{ ex.Description }}</td>
+                    <td class="p-4 text-right font-mono font-bold text-indigo-600">฿{{ Number(ex.Amount).toLocaleString() }}</td>
+                    <td class="p-4 text-center">
+                      <span :class="ex.Status === 'อนุมัติโอนแล้ว' ? 'bg-green-50 text-green-700' : 'bg-amber-50 text-amber-700'" class="px-2.5 py-0.5 rounded-full font-bold text-[10px]">
+                        {{ ex.Status }}
+                      </span>
+                    </td>
+                    <td class="p-4 text-center">
+                      <div class="flex justify-center gap-1.5">
+                        <template v-if="userRole === 'admin' && ex.Status === 'รอการตรวจสอบ'">
+                          <button @click="approveExpense(ex.ID, 'อนุมัติโอนแล้ว')" class="p-1 bg-green-50 text-green-600 rounded border hover:bg-green-100" title="อนุมัติ"><i data-lucide="check" class="w-3.5 h-3.5"></i></button>
+                          <button @click="approveExpense(ex.ID, 'ปฏิเสธ')" class="p-1 bg-red-50 text-red-500 rounded border hover:bg-red-100" title="ปฏิเสธ"><i data-lucide="x" class="w-3.5 h-3.5"></i></button>
+                        </template>
+                        <button v-if="canEditItem(ex, 'expense')" @click="openModal('expense', 'edit', ex)" class="p-1 hover:bg-slate-100 border rounded"><i data-lucide="edit-2" class="w-3.5 h-3.5"></i></button>
+                        <button v-if="canDeleteItem(ex, 'expense')" @click="deleteItem('Expenses', 'ID', ex.ID)" class="p-1 hover:bg-red-50 text-red-500 border rounded"><i data-lucide="trash-2" class="w-3.5 h-3.5"></i></button>
+                      </div>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- 19. สวัสดิการ / เงินกู้ -->
+          <div v-if="activeTab === 'สวัสดิการ / เงินกู้'" class="space-y-6">
+            <div class="flex justify-between items-center bg-white p-4 rounded-xl border">
+              <h3 class="text-sm font-bold text-slate-800">ระบบเบิกสวัสดิการพนักงานและยื่นคำกู้ยืมเงินบริษัท</h3>
+              <button @click="openModal('benefit', 'add')" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-xs font-bold">ยื่นเบิกสวัสดิการ / กู้ยืม</button>
+            </div>
+            <div class="bg-white rounded-2xl border overflow-hidden">
+              <table class="w-full text-left text-xs">
+                <thead class="bg-slate-50 font-bold text-slate-400 border-b">
+                  <tr>
+                    <th class="p-4">ID คำขอ</th>
+                    <th class="p-4">ผู้ยื่นคำขอ</th>
+                    <th class="p-4">ประเภทคำขอ</th>
+                    <th class="p-4 text-right">ยอดขอรับ / วงเงินกู้</th>
+                    <th class="p-4 text-center">สถานะ</th>
+                    <th class="p-4 text-center">จัดการ</th>
+                  </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-100">
+                  <tr v-for="bn in filteredBenefits" :key="bn.ID" class="hover:bg-slate-50/50">
+                    <td class="p-4 font-mono font-bold">{{ bn.ID }}</td>
+                    <td class="p-4 font-bold">{{ bn.EmpName }}</td>
+                    <td class="p-4 font-semibold text-indigo-600">{{ bn.Type }}</td>
+                    <td class="p-4 text-right font-mono font-bold">฿{{ Number(bn.Amount).toLocaleString() }}</td>
+                    <td class="p-4 text-center">
+                      <span :class="bn.Status === 'อนุมัติแล้ว' ? 'bg-green-50 text-green-700' : 'bg-amber-50 text-amber-700'" class="px-2.5 py-0.5 rounded-full font-bold text-[10px]">
+                        {{ bn.Status }}
+                      </span>
+                    </td>
+                    <td class="p-4 text-center">
+                      <div class="flex justify-center gap-1.5">
+                        <template v-if="userRole === 'admin' && bn.Status === 'รอพิจารณา'">
+                          <button @click="approveBenefit(bn.ID, 'อนุมัติแล้ว')" class="p-1 bg-green-50 text-green-600 rounded border hover:bg-green-100" title="อนุมัติ"><i data-lucide="check" class="w-3.5 h-3.5"></i></button>
+                          <button @click="approveBenefit(bn.ID, 'ปฏิเสธ')" class="p-1 bg-red-50 text-red-500 rounded border hover:bg-red-100" title="ปฏิเสธ"><i data-lucide="x" class="w-3.5 h-3.5"></i></button>
+                        </template>
+                        <button v-if="canEditItem(bn, 'benefit')" @click="openModal('benefit', 'edit', bn)" class="p-1 hover:bg-slate-100 border rounded"><i data-lucide="edit-2" class="w-3.5 h-3.5"></i></button>
+                        <button v-if="canDeleteItem(bn, 'benefit')" @click="deleteItem('Benefits', 'ID', bn.ID)" class="p-1 hover:bg-red-50 text-red-500 border rounded"><i data-lucide="trash-2" class="w-3.5 h-3.5"></i></button>
+                      </div>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- 20. ประกันสังคม -->
+          <div v-if="activeTab === 'ประกันสังคม'" class="space-y-6">
+            <div class="bg-white p-6 rounded-2xl border border-slate-100 space-y-4">
+              <h3 class="text-sm font-bold text-slate-800">ระบบบริหารรายงานนำส่งเงินสมทบประกันสังคมประจำเดือน</h3>
+              <div class="p-4 bg-indigo-50/50 rounded-xl border border-indigo-100 text-xs">
+                💡 ยอดเงินนำส่งหักอัตโนมัติ 5% ของพนักงานจะคำนวณสดอ้างอิงจากฐานเงินเดือน (สูงสุดไม่เกิน 750 บาท ต่อคนต่อเดือน)
+              </div>
+              <div class="bg-slate-50 p-4 rounded-xl font-mono text-xs space-y-2">
+                <p class="font-bold text-slate-700">รายงานผลการนำส่ง (สด):</p>
+                <p>จำนวนพนักงานผู้มีฐานข้อมูล Payroll แล้ว: {{ payroll.length }} ราย</p>
+                <p>เงินสมทบฝ่ายพนักงานรวม (5%): ฿{{ payroll.reduce((acc, p) => acc + Math.min(Number(p.BaseSalary) * 0.05, 750), 0).toLocaleString() }}</p>
+                <p>เงินสมทบสมทบฝ่ายบริษัทร่วมจ่าย (5%): ฿{{ payroll.reduce((acc, p) => acc + Math.min(Number(p.BaseSalary) * 0.05, 750), 0).toLocaleString() }}</p>
+                <p class="text-indigo-600 font-bold border-t pt-2 mt-2">ยอดจัดส่ง สปส. 1-10 สุทธิ: ฿{{ (payroll.reduce((acc, p) => acc + Math.min(Number(p.BaseSalary) * 0.05, 750), 0) * 2).toLocaleString() }}</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- 21. ห้องประชุม -->
+          <div v-if="activeTab === 'ห้องประชุม'" class="space-y-6">
+            <div class="flex justify-between items-center bg-white p-4 rounded-xl border">
+              <h3 class="text-sm font-bold text-slate-800">จองใช้งานห้องประชุมสำนักงานใหญ่</h3>
+              <button @click="openModal('roomBooking', 'add')" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-xs font-bold">บันทึกจองห้องประชุมใหม่</button>
+            </div>
+            <div class="bg-white rounded-2xl border overflow-hidden">
+              <table class="w-full text-left text-xs">
+                <thead class="bg-slate-50 font-bold text-slate-400 border-b">
+                  <tr>
+                    <th class="p-4">ID จอง</th>
+                    <th class="p-4">ห้องประชุม</th>
+                    <th class="p-4">ผู้จองใช้งาน</th>
+                    <th class="p-4">วันที่ประชุม</th>
+                    <th class="p-4 font-mono">ช่วงเวลา</th>
+                    <th class="p-4 text-center">สถานะ</th>
+                    <th class="p-4 text-center">จัดการ</th>
+                  </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-100">
+                  <tr v-for="rb in filteredRoomBookings" :key="rb.ID" class="hover:bg-slate-50/50">
+                    <td class="p-4 font-mono font-bold">{{ rb.ID }}</td>
+                    <td class="p-4 font-bold text-indigo-600">{{ rb.RoomName }}</td>
+                    <td class="p-4 font-bold text-slate-800">{{ rb.Requester }}</td>
+                    <td class="p-4 font-mono">{{ rb.Date }}</td>
+                    <td class="p-4 font-mono font-bold text-slate-600">{{ rb.Time }}</td>
+                    <td class="p-4 text-center">
+                      <span class="px-2.5 py-0.5 bg-green-50 text-green-700 rounded-full font-bold text-[10px]">{{ rb.Status }}</span>
+                    </td>
+                    <td class="p-4 text-center">
+                      <div class="flex justify-center gap-1.5">
+                        <button v-if="userRole === 'admin' || rb.Requester === currentUser.Name" @click="openModal('roomBooking', 'edit', rb)" class="p-1 hover:bg-slate-100 border rounded"><i data-lucide="edit-2" class="w-3.5 h-3.5"></i></button>
+                        <button v-if="userRole === 'admin' || rb.Requester === currentUser.Name" @click="deleteItem('RoomBookings', 'ID', rb.ID)" class="p-1 hover:bg-red-50 text-red-500 border rounded"><i data-lucide="trash-2" class="w-3.5 h-3.5"></i></button>
+                      </div>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- 22. ทริปบริษัท -->
+          <div v-if="activeTab === 'ทริปบริษัท'" class="space-y-6">
+            <div class="bg-white p-6 rounded-2xl border border-slate-100 space-y-4">
+              <h3 class="text-sm font-bold text-slate-800">โหวตเลือกสถานที่จัดสัมมนากลุ่มพนักงานประจำปี</h3>
+              <p class="text-xs text-slate-400 font-medium">ร่วมลงความคิดเห็นจุดพักผ่อนบริษัทงวดหน้า:</p>
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2">
+                <button @click="triggerAlert('ขอบคุณสำหรับการร่วมโหวต พัทยา ชลบุรี เรียบร้อย')" class="p-4 border rounded-xl hover:bg-indigo-50/50 text-left transition flex justify-between items-center bg-slate-50">
+                  <div>
+                    <h4 class="text-xs font-bold text-slate-800">🏖️ รีสอร์ทพรีเมียม ริมทะเล หาดพัทยา/ชลบุรี</h4>
+                    <span class="text-[9px] text-slate-400 block mt-1">จำนวนคนเลือกปัจจุบัน: 15 โหวต</span>
+                  </div>
+                  <i data-lucide="check" class="w-4 h-4 text-indigo-600"></i>
+                </button>
+                <button @click="triggerAlert('ขอบคุณสำหรับการร่วมโหวต ยอดภูชี้ฟ้า เชียงราย เรียบร้อย')" class="p-4 border rounded-xl hover:bg-indigo-50/50 text-left transition flex justify-between items-center bg-slate-50">
+                  <div>
+                    <h4 class="text-xs font-bold text-slate-800">🗻 อบอุ่นลมหนาว แคมป์สัมมนา ภูชี้ฟ้า/เชียงราย</h4>
+                    <span class="text-[9px] text-slate-400 block mt-1">จำนวนคนเลือกปัจจุบัน: 8 โหวต</span>
+                  </div>
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- 23. ประกาศข่าวสาร -->
+          <div v-if="activeTab === 'ประกาศข่าวสาร'" class="space-y-6">
+            <div class="flex justify-between items-center bg-white p-4 rounded-xl border">
+              <h3 class="text-sm font-bold text-slate-800">บอร์ดประชาสัมพันธ์และแจ้งข่าวสารภายในองค์กร</h3>
+              <button @click="openModal('announcement', 'add')" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-xs font-bold" v-if="userRole === 'admin'">เขียนข่าวใหม่</button>
+            </div>
+            <div class="space-y-4">
+              <div v-for="ann in announcements" :key="ann.ID" class="p-5 bg-white border border-slate-100 rounded-2xl shadow-sm relative">
+                <div class="absolute top-4 right-4 flex gap-1.5" v-if="userRole === 'admin'">
+                  <button @click="openModal('announcement', 'edit', ann)" class="p-1 hover:bg-slate-100 border rounded"><i data-lucide="edit-2" class="w-3.5 h-3.5 text-slate-600"></i></button>
+                  <button @click="deleteItem('Announcements', 'ID', ann.ID)" class="p-1 hover:bg-red-50 text-red-500 border rounded"><i data-lucide="trash-2" class="w-3.5 h-3.5 text-red-500"></i></button>
+                </div>
+                <div class="flex items-center gap-2 mb-2">
+                  <span class="bg-red-50 text-red-600 text-[9px] px-2.5 py-0.5 rounded-full font-bold">{{ ann.Priority }}</span>
+                  <span class="text-[10px] text-slate-400 font-bold">{{ ann.Date }}</span>
+                </div>
+                <h4 class="text-xs font-bold text-slate-800">{{ ann.Title }}</h4>
+                <p class="text-xs text-slate-500 mt-2 whitespace-pre-line">{{ ann.Details }}</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- 24. รายงาน -->
+          <div v-if="activeTab === 'รายงาน'" class="space-y-6">
+            <div class="bg-white p-6 rounded-2xl border border-slate-100 space-y-4">
+              <h3 class="text-sm font-bold text-slate-800">คลังเอกสารสรุปสถิติจำลองเพื่อการวิเคราะห์</h3>
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <button @click="triggerAlert('กำลังดาวน์โหลดรายงานข้อมูลพนักงานรวมทั้งหมด')" class="p-4 border rounded-xl flex items-center justify-between hover:bg-slate-50 transition text-left">
+                  <span class="text-xs font-bold text-slate-700">📑 รายงานพนักงาน แผนก และสถิติตำแหน่งงานบริษัท.csv</span>
+                  <i data-lucide="download" class="w-4 h-4"></i>
+                </button>
+                <button @click="triggerAlert('กำลังดาวน์โหลดรายงานการจ่ายสลิปเงินเดือนสะสม')" class="p-4 border rounded-xl flex items-center justify-between hover:bg-slate-50 transition text-left">
+                  <span class="text-xs font-bold text-slate-700">💵 รายงานสถิติการจ่าย Payroll & ค่าล่วงเวลาสะสมประจำปี.csv</span>
+                  <i data-lucide="download" class="w-4 h-4"></i>
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- 25. จัดการผู้ใช้งานและสิทธิ์ -->
+          <div v-if="activeTab === 'จัดการผู้ใช้งานและสิทธิ์'" class="space-y-6">
+            <div class="bg-white p-6 rounded-2xl border border-slate-100 space-y-4">
+              <h3 class="text-sm font-bold text-slate-800">ตั้งค่าสิทธิ์ผู้เข้าใช้งานระบบและรหัสผ่านพนักงาน</h3>
+              <div class="bg-white rounded-xl border overflow-hidden">
+                <table class="w-full text-left text-xs">
+                  <thead class="bg-slate-50 font-bold text-slate-400 border-b">
+                    <tr>
+                      <th class="p-4">รหัสพนักงาน</th>
+                      <th class="p-4">พนักงาน</th>
+                      <th class="p-4">ตำแหน่ง</th>
+                      <th class="p-4 text-center">ระดับสิทธิ์ที่ระบุ</th>
+                      <th class="p-4">รหัสผ่านปัจจุบัน</th>
+                      <th class="p-4 text-center">จัดการรหัส</th>
+                    </tr>
+                  </thead>
+                  <tbody class="divide-y divide-slate-100">
+                    <tr v-for="emp in employees" :key="emp.ID" class="hover:bg-slate-50/50">
+                      <td class="p-4 font-mono font-bold">{{ emp.ID }}</td>
+                      <td class="p-4 font-bold">{{ emp.Name }}</td>
+                      <td class="p-4">{{ emp.Position }}</td>
+                      <td class="p-4 text-center">
+                        <span class="px-2 py-0.5 bg-indigo-50 text-indigo-700 font-bold rounded text-[10px]">
+                          {{ emp.ID === 'ADMIN' ? 'Administrator' : 'Employee' }}
+                        </span>
+                      </td>
+                      <td class="p-4 font-mono text-xs text-slate-500">{{ emp.Password }}</td>
+                      <td class="p-4 text-center">
+                        <button @click="openModal('employee', 'edit', emp)" class="px-3 py-1 bg-slate-100 hover:bg-slate-200 rounded border text-[10px] font-bold">
+                          เปลี่ยนสิทธิ์/รหัสผ่าน
+                        </button>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </main>
+    </template>
+
+    <!-- SUPER DYNAMIC MODAL (Supports Add/Edit for all components) -->
+    <div v-if="activeModal.show" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+      <div class="bg-white p-6 rounded-2xl shadow-2xl max-w-md w-full border border-slate-100 max-h-[85vh] overflow-y-auto custom-scrollbar">
+        <div class="flex justify-between items-center mb-4 pb-2 border-b">
+          <h3 class="text-xs font-bold text-slate-800">
+            {{ activeModal.mode === 'add' ? 'เพิ่มข้อมูลใหม่' : 'แก้ไขข้อมูล' }} ({{ activeModal.type }})
+          </h3>
+          <button @click="activeModal.show = false"><i data-lucide="x" class="w-4.5 h-4.5 text-slate-400 hover:text-slate-600"></i></button>
+        </div>
+
+        <!-- 1. Form Employee -->
+        <form v-if="activeModal.type === 'employee'" @submit.prevent="submitForm" class="space-y-4">
+          <div>
+            <label class="block text-[10px] font-bold text-slate-400 mb-1">รหัสพนักงาน (ID)</label>
+            <input type="text" v-model="formModel.ID" required :disabled="activeModal.mode === 'edit'" class="w-full p-2.5 border rounded-lg text-xs bg-slate-50 disabled:opacity-50">
+          </div>
+          <div>
+            <label class="block text-[10px] font-bold text-slate-400 mb-1">ชื่อ-นามสกุล</label>
+            <input type="text" v-model="formModel.Name" required class="w-full p-2.5 border rounded-lg text-xs">
+          </div>
+          <div class="grid grid-cols-2 gap-4">
+            <div>
+              <label class="block text-[10px] font-bold text-slate-400 mb-1">เพศ</label>
+              <select v-model="formModel.Gender" class="w-full p-2.5 border rounded-lg text-xs bg-white">
+                <option value="ชาย">ชาย</option>
+                <option value="หญิง">หญิง</option>
+              </select>
+            </div>
+            <div>
+              <label class="block text-[10px] font-bold text-slate-400 mb-1">เบอร์โทรศัพท์</label>
+              <input type="text" v-model="formModel.Phone" required class="w-full p-2.5 border rounded-lg text-xs">
+            </div>
+          </div>
+          <div class="grid grid-cols-2 gap-4">
+            <div>
+              <label class="block text-[10px] font-bold text-slate-400 mb-1">แผนก</label>
+              <input type="text" v-model="formModel.Department" required class="w-full p-2.5 border rounded-lg text-xs">
+            </div>
+            <div>
+              <label class="block text-[10px] font-bold text-slate-400 mb-1">ตำแหน่ง</label>
+              <input type="text" v-model="formModel.Position" required class="w-full p-2.5 border rounded-lg text-xs">
+            </div>
+          </div>
+          <div>
+            <label class="block text-[10px] font-bold text-slate-400 mb-1">รหัสผ่านสำหรับพนักงานล็อกอิน</label>
+            <input type="text" v-model="formModel.Password" required class="w-full p-2.5 border rounded-lg text-xs">
+          </div>
+          <div>
+            <label class="block text-[10px] font-bold text-slate-400 mb-1">อีเมล</label>
+            <input type="email" v-model="formModel.Email" required class="w-full p-2.5 border rounded-lg text-xs">
+          </div>
+          <div>
+            <label class="block text-[10px] font-bold text-slate-400 mb-1">วันที่เริ่มงาน</label>
+            <input type="date" v-model="formModel.StartDate" required class="w-full p-2.5 border rounded-lg text-xs">
+          </div>
+          <button type="submit" class="w-full py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-xl text-xs transition">บันทึกพนักงาน</button>
+        </form>
+
+        <!-- 2. Form Department -->
+        <form v-if="activeModal.type === 'department'" @submit.prevent="submitForm" class="space-y-4">
+          <div>
+            <label class="block text-[10px] font-bold text-slate-400 mb-1">รหัสแผนก</label>
+            <input type="text" v-model="formModel.Code" required :disabled="activeModal.mode === 'edit'" class="w-full p-2.5 border rounded-lg text-xs">
+          </div>
+          <div>
+            <label class="block text-[10px] font-bold text-slate-400 mb-1">ชื่อแผนก</label>
+            <input type="text" v-model="formModel.Name" required class="w-full p-2.5 border rounded-lg text-xs">
+          </div>
+          <div>
+            <label class="block text-[10px] font-bold text-slate-400 mb-1">รายละเอียดแผนก</label>
+            <textarea v-model="formModel.Details" required class="w-full p-2.5 border rounded-lg text-xs h-24"></textarea>
+          </div>
+          <button type="submit" class="w-full py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-xl text-xs transition">บันทึกแผนก</button>
+        </form>
+
+        <!-- 3. Form Position -->
+        <form v-if="activeModal.type === 'position'" @submit.prevent="submitForm" class="space-y-4">
+          <div>
+            <label class="block text-[10px] font-bold text-slate-400 mb-1">รหัสตำแหน่ง (ID)</label>
+            <input type="text" v-model="formModel.ID" required :disabled="activeModal.mode === 'edit'" class="w-full p-2.5 border rounded-lg text-xs">
+          </div>
+          <div>
+            <label class="block text-[10px] font-bold text-slate-400 mb-1">ชื่อตำแหน่งงาน</label>
+            <input type="text" v-model="formModel.Title" required class="w-full p-2.5 border rounded-lg text-xs">
+          </div>
+          <div class="grid grid-cols-2 gap-4">
+            <div>
+              <label class="block text-[10px] font-bold text-slate-400 mb-1">ระดับตำแหน่ง</label>
+              <input type="text" v-model="formModel.Level" required class="w-full p-2.5 border rounded-lg text-xs">
+            </div>
+            <div>
+              <label class="block text-[10px] font-bold text-slate-400 mb-1">แผนกผู้ดูแล</label>
+              <input type="text" v-model="formModel.Department" required class="w-full p-2.5 border rounded-lg text-xs">
+            </div>
+          </div>
+          <div class="grid grid-cols-2 gap-4">
+            <div>
+              <label class="block text-[10px] font-bold text-slate-400 mb-1">เงินเดือนขั้นต่ำ</label>
+              <input type="number" v-model="formModel.MinSalary" required class="w-full p-2.5 border rounded-lg text-xs">
+            </div>
+            <div>
+              <label class="block text-[10px] font-bold text-slate-400 mb-1">เงินเดือนขั้นสูง</label>
+              <input type="number" v-model="formModel.MaxSalary" required class="w-full p-2.5 border rounded-lg text-xs">
+            </div>
+          </div>
+          <button type="submit" class="w-full py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-xl text-xs transition">บันทึกตำแหน่งงาน</button>
+        </form>
+
+        <!-- 4. Form Room Booking -->
+        <form v-if="activeModal.type === 'roomBooking'" @submit.prevent="submitForm" class="space-y-4">
+          <div>
+            <label class="block text-[10px] font-bold text-slate-400 mb-1">ห้องประชุม</label>
+            <select v-model="formModel.RoomName" class="w-full p-2.5 border rounded-lg text-xs bg-white">
+              <option value="ห้องประชุมใหญ่ A">ห้องประชุมใหญ่ A</option>
+              <option value="ห้องสัมมนาย่อย B">ห้องสัมมนาย่อย B</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-[10px] font-bold text-slate-400 mb-1">วันที่ต้องการจอง</label>
+            <input type="date" v-model="formModel.Date" required class="w-full p-2.5 border rounded-lg text-xs">
+          </div>
+          <div>
+            <label class="block text-[10px] font-bold text-slate-400 mb-1">ช่วงเวลา (เช่น 10:00 - 12:00)</label>
+            <input type="text" v-model="formModel.Time" required class="w-full p-2.5 border rounded-lg text-xs">
+          </div>
+          <button type="submit" class="w-full py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-xl text-xs transition">ส่งบันทึกจอง</button>
+        </form>
+
+        <!-- 5. Form Leave -->
+        <form v-if="activeModal.type === 'leave'" @submit.prevent="submitForm" class="space-y-4">
+          <div>
+            <label class="block text-[10px] font-bold text-slate-400 mb-1">ประเภทคำขอลา</label>
+            <select v-model="formModel.Type" class="w-full p-2.5 border rounded-lg text-xs bg-white">
+              <option value="ลากิจ">ลากิจ</option>
+              <option value="ลาป่วย">ลาป่วย</option>
+              <option value="ลาพักร้อน">ลาพักร้อน</option>
+            </select>
+          </div>
+          <div class="grid grid-cols-2 gap-4">
+            <div>
+              <label class="block text-[10px] font-bold text-slate-400 mb-1">วันที่เริ่มต้น</label>
+              <input type="date" v-model="formModel.StartDate" required class="w-full p-2.5 border rounded-lg text-xs">
+            </div>
+            <div>
+              <label class="block text-[10px] font-bold text-slate-400 mb-1">วันที่สิ้นสุด</label>
+              <input type="date" v-model="formModel.EndDate" required class="w-full p-2.5 border rounded-lg text-xs">
+            </div>
+          </div>
+          <div>
+            <label class="block text-[10px] font-bold text-slate-400 mb-1">จำนวนวัน (จำนวนตัวเลข)</label>
+            <input type="number" v-model="formModel.Days" required class="w-full p-2.5 border rounded-lg text-xs">
+          </div>
+          <div>
+            <label class="block text-[10px] font-bold text-slate-400 mb-1">เหตุผลประกอบการลา</label>
+            <textarea v-model="formModel.Reason" required class="w-full p-2.5 border rounded-lg text-xs h-20"></textarea>
+          </div>
+          <button type="submit" class="w-full py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-xl text-xs transition">ยื่นใบลา</button>
+        </form>
+
+        <!-- 6. Form Expense -->
+        <form v-if="activeModal.type === 'expense'" @submit.prevent="submitForm" class="space-y-4">
+          <div>
+            <label class="block text-[10px] font-bold text-slate-400 mb-1">หมวดหมู่ค่าใช้จ่าย</label>
+            <select v-model="formModel.Category" class="w-full p-2.5 border rounded-lg text-xs bg-white">
+              <option value="เดินทาง">เดินทาง / พาหนะ</option>
+              <option value="อุปกรณ์สำนักงาน">อุปกรณ์สำนักงาน</option>
+              <option value="เซิร์ฟเวอร์">ค่าซอฟต์แวร์ / เซิร์ฟเวอร์ Cloud</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-[10px] font-bold text-slate-400 mb-1">รายละเอียดและคำอธิบาย</label>
+            <input type="text" v-model="formModel.Description" required class="w-full p-2.5 border rounded-lg text-xs">
+          </div>
+          <div>
+            <label class="block text-[10px] font-bold text-slate-400 mb-1">จำนวนเงินเบิก (บาท)</label>
+            <input type="number" v-model="formModel.Amount" required class="w-full p-2.5 border rounded-lg text-xs">
+          </div>
+          <button type="submit" class="w-full py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-xl text-xs transition">ส่งเบิกจ่าย</button>
+        </form>
+
+        <!-- 7. Form OT -->
+        <form v-if="activeModal.type === 'ot'" @submit.prevent="submitForm" class="space-y-4">
+          <div>
+            <label class="block text-[10px] font-bold text-slate-400 mb-1">วันที่ทำ OT</label>
+            <input type="date" v-model="formModel.Date" required class="w-full p-2.5 border rounded-lg text-xs">
+          </div>
+          <div>
+            <label class="block text-[10px] font-bold text-slate-400 mb-1">จำนวนชั่วโมง (สะสม)</label>
+            <input type="number" step="0.5" v-model="formModel.Hours" required class="w-full p-2.5 border rounded-lg text-xs">
+          </div>
+          <div>
+            <label class="block text-[10px] font-bold text-slate-400 mb-1">งานที่ปฏิบัติ / รายละเอียด</label>
+            <input type="text" v-model="formModel.Reason" required class="w-full p-2.5 border rounded-lg text-xs">
+          </div>
+          <button type="submit" class="w-full py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-xl text-xs transition">ส่งคำขอ OT</button>
+        </form>
+
+        <!-- 8. Form Shift -->
+        <form v-if="activeModal.type === 'shift'" @submit.prevent="submitForm" class="space-y-4">
+          <div>
+            <label class="block text-[10px] font-bold text-slate-400 mb-1">เลือกพนักงานเข้าเวร/กะ</label>
+            <select v-model="formModel.EmpName" class="w-full p-2.5 border rounded-lg text-xs bg-white">
+              <option v-for="emp in employees" :key="emp.ID" :value="emp.Name">{{ emp.Name }}</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-[10px] font-bold text-slate-400 mb-1">วันที่จัดตารางกะ</label>
+            <input type="date" v-model="formModel.Date" required class="w-full p-2.5 border rounded-lg text-xs">
+          </div>
+          <div class="grid grid-cols-2 gap-4">
+            <div>
+              <label class="block text-[10px] font-bold text-slate-400 mb-1">กะ</label>
+              <select v-model="formModel.Shift" class="w-full p-2.5 border rounded-lg text-xs bg-white">
+                <option value="เช้า">เช้า</option>
+                <option value="บ่าย">บ่าย</option>
+                <option value="ดึก">ดึก</option>
+              </select>
+            </div>
+            <div>
+              <label class="block text-[10px] font-bold text-slate-400 mb-1">เวลา</label>
+              <input type="text" v-model="formModel.Time" required class="w-full p-2.5 border rounded-lg text-xs">
+            </div>
+          </div>
+          <div>
+            <label class="block text-[10px] font-bold text-slate-400 mb-1">หมายเหตุเพิ่มเติม</label>
+            <input type="text" v-model="formModel.Note" class="w-full p-2.5 border rounded-lg text-xs">
+          </div>
+          <button type="submit" class="w-full py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-xl text-xs transition">บันทึกจัดกะ</button>
+        </form>
+
+        <!-- 9. Form Recruitment -->
+        <form v-if="activeModal.type === 'recruitment'" @submit.prevent="submitForm" class="space-y-4">
+          <div>
+            <label class="block text-[10px] font-bold text-slate-400 mb-1">ตำแหน่งงานเปิดรับ</label>
+            <input type="text" v-model="formModel.JobTitle" required class="w-full p-2.5 border rounded-lg text-xs">
+          </div>
+          <div class="grid grid-cols-2 gap-4">
+            <div>
+              <label class="block text-[10px] font-bold text-slate-400 mb-1">ฝ่าย / แผนก</label>
+              <input type="text" v-model="formModel.Department" required class="w-full p-2.5 border rounded-lg text-xs">
+            </div>
+            <div>
+              <label class="block text-[10px] font-bold text-slate-400 mb-1">อัตรากำลังพลที่รับ</label>
+              <input type="number" v-model="formModel.Openings" required class="w-full p-2.5 border rounded-lg text-xs">
+            </div>
+          </div>
+          <div>
+            <label class="block text-[10px] font-bold text-slate-400 mb-1">สถานะรับสมัคร</label>
+            <select v-model="formModel.Status" class="w-full p-2.5 border rounded-lg text-xs bg-white">
+              <option value="เปิดรับสมัคร">เปิดรับสมัคร</option>
+              <option value="ปิดรับสมัคร">ปิดรับสมัคร</option>
+            </select>
+          </div>
+          <button type="submit" class="w-full py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-xl text-xs transition">บันทึกตำแหน่งงานเปิดรับ</button>
+        </form>
+
+        <!-- 10. Form Candidate -->
+        <form v-if="activeModal.type === 'candidate'" @submit.prevent="submitForm" class="space-y-4">
+          <div>
+            <label class="block text-[10px] font-bold text-slate-400 mb-1">ชื่อผู้สมัคร</label>
+            <input type="text" v-model="formModel.Name" required class="w-full p-2.5 border rounded-lg text-xs">
+          </div>
+          <div>
+            <label class="block text-[10px] font-bold text-slate-400 mb-1">ตำแหน่งงานที่สมัคร</label>
+            <input type="text" v-model="formModel.JobTitle" required class="w-full p-2.5 border rounded-lg text-xs">
+          </div>
+          <div class="grid grid-cols-2 gap-4">
+            <div>
+              <label class="block text-[10px] font-bold text-slate-400 mb-1">เบอร์โทรศัพท์</label>
+              <input type="text" v-model="formModel.Phone" required class="w-full p-2.5 border rounded-lg text-xs">
+            </div>
+            <div>
+              <label class="block text-[10px] font-bold text-slate-400 mb-1">อีเมลผู้สมัคร</label>
+              <input type="email" v-model="formModel.Email" required class="w-full p-2.5 border rounded-lg text-xs">
+            </div>
+          </div>
+          <div>
+            <label class="block text-[10px] font-bold text-slate-400 mb-1">บันทึกประกอบสัมภาษณ์</label>
+            <textarea v-model="formModel.Note" class="w-full p-2.5 border rounded-lg text-xs h-20"></textarea>
+          </div>
+          <button type="submit" class="w-full py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-xl text-xs transition">บันทึกผู้สมัคร</button>
+        </form>
+
+        <!-- 11. Form Onboarding -->
+        <form v-if="activeModal.type === 'onboarding'" @submit.prevent="submitForm" class="space-y-4">
+          <div>
+            <label class="block text-[10px] font-bold text-slate-400 mb-1">ชื่อพนักงานใหม่</label>
+            <input type="text" v-model="formModel.EmpName" required class="w-full p-2.5 border rounded-lg text-xs">
+          </div>
+          <div>
+            <label class="block text-[10px] font-bold text-slate-400 mb-1">ขั้นตอนปฏิบัติงาน</label>
+            <input type="text" v-model="formModel.Step" required class="w-full p-2.5 border rounded-lg text-xs">
+          </div>
+          <button type="submit" class="w-full py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-xl text-xs transition">บันทึกข้อมูล Onboarding</button>
+        </form>
+
+        <!-- 12. Form Training -->
+        <form v-if="activeModal.type === 'training'" @submit.prevent="submitForm" class="space-y-4">
+          <div>
+            <label class="block text-[10px] font-bold text-slate-400 mb-1">หัวข้อวิชาฝึกอบรม</label>
+            <input type="text" v-model="formModel.Title" required class="w-full p-2.5 border rounded-lg text-xs">
+          </div>
+          <div>
+            <label class="block text-[10px] font-bold text-slate-400 mb-1">หมวดหมู่ฝึกฝน</label>
+            <input type="text" v-model="formModel.Category" required class="w-full p-2.5 border rounded-lg text-xs">
+          </div>
+          <div class="grid grid-cols-2 gap-4">
+            <div>
+              <label class="block text-[10px] font-bold text-slate-400 mb-1">วิทยากร</label>
+              <input type="text" v-model="formModel.Instructor" required class="w-full p-2.5 border rounded-lg text-xs">
+            </div>
+            <div>
+              <label class="block text-[10px] font-bold text-slate-400 mb-1">จำนวนชั่วโมง</label>
+              <input type="number" v-model="formModel.Hours" required class="w-full p-2.5 border rounded-lg text-xs">
+            </div>
+          </div>
+          <button type="submit" class="w-full py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-xl text-xs transition">บันทึกหลักสูตร</button>
+        </form>
+
+        <!-- 13. Form Performance -->
+        <form v-if="activeModal.type === 'performance'" @submit.prevent="submitForm" class="space-y-4">
+          <div>
+            <label class="block text-[10px] font-bold text-slate-400 mb-1">เลือกพนักงานผู้รับการประเมิน</label>
+            <select v-model="formModel.EmpName" class="w-full p-2.5 border rounded-lg text-xs bg-white">
+              <option v-for="emp in employees" :key="emp.ID" :value="emp.Name">{{ emp.Name }}</option>
+            </select>
+          </div>
+          <div class="grid grid-cols-3 gap-2">
+            <div>
+              <label class="block text-[10px] font-bold text-slate-400 mb-1">คุณภาพ (1-5)</label>
+              <input type="number" min="1" max="5" v-model="formModel.QualityScore" required class="w-full p-2.5 border rounded-lg text-xs">
+            </div>
+            <div>
+              <label class="block text-[10px] font-bold text-slate-400 mb-1">ตรงเวลา (1-5)</label>
+              <input type="number" min="1" max="5" v-model="formModel.OnTimeScore" required class="w-full p-2.5 border rounded-lg text-xs">
+            </div>
+            <div>
+              <label class="block text-[10px] font-bold text-slate-400 mb-1">สื่อสาร (1-5)</label>
+              <input type="number" min="1" max="5" v-model="formModel.CommunicationScore" required class="w-full p-2.5 border rounded-lg text-xs">
+            </div>
+          </div>
+          <div>
+            <label class="block text-[10px] font-bold text-slate-400 mb-1">ความคิดเห็นเพิ่มเติม</label>
+            <textarea v-model="formModel.ReviewNote" class="w-full p-2.5 border rounded-lg text-xs h-20"></textarea>
+          </div>
+          <button type="submit" class="w-full py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-xl text-xs transition">บันทึกคะแนนประเมิน</button>
+        </form>
+
+        <!-- 14. OKR Form -->
+        <form v-if="activeModal.type === 'okr'" @submit.prevent="submitForm" class="space-y-4">
+          <div>
+            <label class="block text-[10px] font-bold text-slate-400 mb-1">เป้าหมายหลัก (Objective)</label>
+            <input type="text" v-model="formModel.Objective" required class="w-full p-2.5 border rounded-lg text-xs">
+          </div>
+          <div class="grid grid-cols-2 gap-4">
+            <div>
+              <label class="block text-[10px] font-bold text-slate-400 mb-1">เป้าตัวเลขสำเร็จ</label>
+              <input type="number" v-model="formModel.Target" required class="w-full p-2.5 border rounded-lg text-xs">
+            </div>
+            <div>
+              <label class="block text-[10px] font-bold text-slate-400 mb-1">ความก้าวหน้าปัจจุบัน (%)</label>
+              <input type="number" min="0" max="100" v-model="formModel.Progress" required class="w-full p-2.5 border rounded-lg text-xs">
+            </div>
+          </div>
+          <button type="submit" class="w-full py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-xl text-xs transition">บันทึกเป้าหมาย OKR</button>
+        </form>
+
+        <!-- 15. Form Document -->
+        <form v-if="activeModal.type === 'document'" @submit.prevent="submitForm" class="space-y-4">
+          <div>
+            <label class="block text-[10px] font-bold text-slate-400 mb-1">ชื่อเอกสารที่เผยแพร่</label>
+            <input type="text" v-model="formModel.Title" required class="w-full p-2.5 border rounded-lg text-xs">
+          </div>
+          <div>
+            <label class="block text-[10px] font-bold text-slate-400 mb-1">หมวดหมู่เอกสาร</label>
+            <input type="text" v-model="formModel.Category" required class="w-full p-2.5 border rounded-lg text-xs">
+          </div>
+          <div>
+            <label class="block text-[10px] font-bold text-slate-400 mb-1">ลิงก์เอกสารดาวน์โหลด (URL)</label>
+            <input type="text" v-model="formModel.Link" required class="w-full p-2.5 border rounded-lg text-xs">
+          </div>
+          <div>
+            <label class="block text-[10px] font-bold text-slate-400 mb-1">รายละเอียดเพิ่มเติม</label>
+            <input type="text" v-model="formModel.Description" class="w-full p-2.5 border rounded-lg text-xs">
+          </div>
+          <button type="submit" class="w-full py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-xl text-xs transition">บันทึกเอกสาร</button>
+        </form>
+
+        <!-- 16. Form Asset -->
+        <form v-if="activeModal.type === 'asset'" @submit.prevent="submitForm" class="space-y-4">
+          <div>
+            <label class="block text-[10px] font-bold text-slate-400 mb-1">ชื่ออุปกรณ์บริษัท</label>
+            <input type="text" v-model="formModel.Name" required class="w-full p-2.5 border rounded-lg text-xs">
+          </div>
+          <div>
+            <label class="block text-[10px] font-bold text-slate-400 mb-1">หมวดหมู่ทรัพย์สิน</label>
+            <input type="text" v-model="formModel.Category" required class="w-full p-2.5 border rounded-lg text-xs">
+          </div>
+          <div>
+            <label class="block text-[10px] font-bold text-slate-400 mb-1">พนักงานผู้รับมอบดูแล/ยืม</label>
+            <select v-model="formModel.Assignee" class="w-full p-2.5 border rounded-lg text-xs bg-white">
+              <option v-for="emp in employees" :key="emp.ID" :value="emp.Name">{{ emp.Name }}</option>
+            </select>
+          </div>
+          <button type="submit" class="w-full py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-xl text-xs transition">บันทึกอุปกรณ์คุม</button>
+        </form>
+
+        <!-- 17. Form Benefit -->
+        <form v-if="activeModal.type === 'benefit'" @submit.prevent="submitForm" class="space-y-4">
+          <div>
+            <label class="block text-[10px] font-bold text-slate-400 mb-1">ประเภทสวัสดิการ / เงินกู้ช่วยเหลือ</label>
+            <select v-model="formModel.Type" class="w-full p-2.5 border rounded-lg text-xs bg-white">
+              <option value="ตรวจสุขภาพประจำปี">ตรวจสุขภาพประจำปี</option>
+              <option value="สวัสดิการกู้ยืมฉุกเฉิน">สวัสดิการกู้ยืมฉุกเฉิน</option>
+              <option value="ทุนการศึกษาบุตรพนักงาน">ทุนการศึกษาบุตรพนักงาน</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-[10px] font-bold text-slate-400 mb-1">วงเงินขออนุมัติเบิก (บาท)</label>
+            <input type="number" v-model="formModel.Amount" required class="w-full p-2.5 border rounded-lg text-xs">
+          </div>
+          <button type="submit" class="w-full py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-xl text-xs transition">ส่งคำขอรับสวัสดิการ</button>
+        </form>
+
+        <!-- 18. Form Announcement -->
+        <form v-if="activeModal.type === 'announcement'" @submit.prevent="submitForm" class="space-y-4">
+          <div>
+            <label class="block text-[10px] font-bold text-slate-400 mb-1">หัวข้อประกาศข่าวสาร</label>
+            <input type="text" v-model="formModel.Title" required class="w-full p-2.5 border rounded-lg text-xs">
+          </div>
+          <div>
+            <label class="block text-[10px] font-bold text-slate-400 mb-1">เนื้อหาและสารประกาศด่วน</label>
+            <textarea v-model="formModel.Details" required class="w-full p-2.5 border rounded-lg text-xs h-32"></textarea>
+          </div>
+          <div>
+            <label class="block text-[10px] font-bold text-slate-400 mb-1">ความสำคัญเร่งด่วน</label>
+            <select v-model="formModel.Priority" class="w-full p-2.5 border rounded-lg text-xs bg-white">
+              <option value="ปกติ">ปกติ</option>
+              <option value="ปานกลาง">ปานกลาง</option>
+              <option value="สูง">สูง / ด่วนที่สุด</option>
+            </select>
+          </div>
+          <button type="submit" class="w-full py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-xl text-xs transition">เผยแพร่ประกาศข่าวสาร</button>
+        </form>
+
+        <!-- 19. Form Payroll -->
+        <form v-if="activeModal.type === 'payroll'" @submit.prevent="submitForm" class="space-y-4">
+          <div>
+            <label class="block text-[10px] font-bold text-slate-400 mb-1">สลิปโค้ด (ID)</label>
+            <input type="text" v-model="formModel.SlipID" required :disabled="activeModal.mode === 'edit'" class="w-full p-2.5 border rounded-lg text-xs bg-slate-50 disabled:opacity-50">
+          </div>
+          <div>
+            <label class="block text-[10px] font-bold text-slate-400 mb-1">รอบบัญชีงวดการจ่าย</label>
+            <input type="month" v-model="formModel.Period" required class="w-full p-2.5 border rounded-lg text-xs">
+          </div>
+          <div>
+            <label class="block text-[10px] font-bold text-slate-400 mb-1">เลือกพนักงานรับการประมวลผล</label>
+            <select v-model="formModel.EmpName" class="w-full p-2.5 border rounded-lg text-xs bg-white">
+              <option v-for="emp in employees" :key="emp.ID" :value="emp.Name">{{ emp.Name }}</option>
+            </select>
+          </div>
+          <div class="grid grid-cols-2 gap-4">
+            <div>
+              <label class="block text-[10px] font-bold text-slate-400 mb-1">เงินเดือนขั้นพื้นฐาน</label>
+              <input type="number" v-model="formModel.BaseSalary" required class="w-full p-2.5 border rounded-lg text-xs">
+            </div>
+            <div>
+              <label class="block text-[10px] font-bold text-slate-400 mb-1">ชั่วโมงล่วงเวลา OT (+)</label>
+              <input type="number" v-model="formModel.OT" required class="w-full p-2.5 border rounded-lg text-xs">
+            </div>
+          </div>
+          <div class="grid grid-cols-2 gap-4">
+            <div>
+              <label class="block text-[10px] font-bold text-slate-400 mb-1">โบนัสพนักงาน (+)</label>
+              <input type="number" v-model="formModel.Bonus" required class="w-full p-2.5 border rounded-lg text-xs">
+            </div>
+            <div>
+              <label class="block text-[10px] font-bold text-slate-400 mb-1">หักภาษี / หักสมทบ (-)</label>
+              <input type="number" v-model="formModel.Deductions" required class="w-full p-2.5 border rounded-lg text-xs">
+            </div>
+          </div>
+          <button type="submit" class="w-full py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-xl text-xs transition">ประมวลผลคำนวณเงินเดือน</button>
+        </form>
+
+      </div>
+    </div>
+
+    <!-- Toast alert message -->
+    <div v-if="toast.show" class="fixed bottom-6 right-6 z-50 bg-slate-900 text-white px-5 py-3 rounded-2xl shadow-2xl flex items-center gap-3 border border-slate-800 animate-bounce">
+      <div class="p-1 bg-indigo-500 rounded-full text-white"><i data-lucide="check" class="w-4 h-4"></i></div>
+      <div>
+        <p class="text-xs font-bold">{{ toast.title }}</p>
+        <p class="text-[10px] text-slate-400 mt-0.5">{{ toast.message }}</p>
+      </div>
+    </div>
+
+  </div>
+
+  <script>
+    const { createApp, ref, computed, onMounted, nextTick } = Vue;
+
+    createApp({
+      setup() {
+        const isGasServer = ref(typeof google !== 'undefined' && google.script && google.script.run);
+        
+        const isLoggedIn = ref(false);
+        const userRole = ref(''); 
+        const currentUser = ref({});
+        const loginForm = ref({ username: 'admin', password: 'admin123' });
+        const loginLoading = ref(false);
+        const currentTime = ref('');
+
+        const activeTab = ref('Dashboard');
+        
+        // Databases structures mapped
+        const employees = ref([]);
+        const departments = ref([]);
+        const positions = ref([]);
+        const payroll = ref([]);
+        const leaves = ref([]);
+        const attendance = ref([]);
+        const shifts = ref([]);
+        const recruitments = ref([]);
+        const candidates = ref([]);
+        const onboardings = ref([]);
+        const trainings = ref([]);
+        const okrs = ref([]);
+        const documents = ref([]);
+        const assets = ref([]);
+        const expenses = ref([]);
+        const benefits = ref([]);
+        const roomBookings = ref([]);
+        const ots = ref([]);
+        const announcements = ref([]);
+        const performanceEvaluations = ref([]);
+
+        const activeModal = ref({ show: false, type: '', mode: 'add', data: null });
+        const formModel = ref({});
+        const toast = ref({ show: false, title: '', message: '' });
+
+        // 25 Modules Organized Grouping
+        const menuGroups = [
+          {
+            title: "บริหารจัดการหลัก (Core HR)",
+            items: [
+              { name: 'Dashboard', icon: 'layout-dashboard', visibleFor: ['admin', 'employee'] },
+              { name: 'พนักงาน', icon: 'users', visibleFor: ['admin'] },
+              { name: 'แผนก', icon: 'network', visibleFor: ['admin'] },
+              { name: 'ตำแหน่งงาน', icon: 'briefcase', visibleFor: ['admin'] },
+              { name: 'จัดการผู้ใช้งานและสิทธิ์', icon: 'shield-alert', visibleFor: ['admin'] }
+            ]
+          },
+          {
+            title: "เวลาและการเงิน (Compensation)",
+            items: [
+              { name: 'บันทึกเวลาเข้างาน', icon: 'clock', visibleFor: ['admin', 'employee'] },
+              { name: 'จัดกะการทำงาน', icon: 'calendar-range', visibleFor: ['admin', 'employee'] },
+              { name: 'การลา', icon: 'calendar-days', visibleFor: ['admin', 'employee'] },
+              { name: 'เงินเดือน (Payroll)', icon: 'coins', visibleFor: ['admin', 'employee'] },
+              { name: 'ค่าล่วงเวลา (OT)', icon: 'hourglass', visibleFor: ['admin', 'employee'] },
+              { name: 'ประกันสังคม', icon: 'heart-handshake', visibleFor: ['admin'] }
+            ]
+          },
+          {
+            title: "พัฒนาบุคลากร (Performance)",
+            items: [
+              { name: 'สรรหาพนักงาน', icon: 'user-plus', visibleFor: ['admin'] },
+              { name: 'ผู้สมัครงาน (ATS)', icon: 'user-check', visibleFor: ['admin'] },
+              { name: 'ปฐมนิเทศพนักงานใหม่', icon: 'milestone', visibleFor: ['admin', 'employee'] },
+              { name: 'อบรมและพัฒนา', icon: 'graduation-cap', visibleFor: ['admin', 'employee'] },
+              { name: 'ประเมินผลพนักงาน', icon: 'clipboard-check', visibleFor: ['admin', 'employee'] },
+              { name: 'OKR / KPI', icon: 'target', visibleFor: ['admin', 'employee'] }
+            ]
+          },
+          {
+            title: "งานสนับสนุน (Operations)",
+            items: [
+              { name: 'เอกสาร HR', icon: 'file-text', visibleFor: ['admin', 'employee'] },
+              { name: 'ทรัพย์สินบริษัท', icon: 'package', visibleFor: ['admin', 'employee'] },
+              { name: 'เบิกค่าใช้จ่าย', icon: 'wallet', visibleFor: ['admin', 'employee'] },
+              { name: 'สวัสดิการ / เงินกู้', icon: 'gift', visibleFor: ['admin', 'employee'] },
+              { name: 'ห้องประชุม', icon: 'door-open', visibleFor: ['admin', 'employee'] },
+              { name: 'ทริปบริษัท', icon: 'compass', visibleFor: ['admin', 'employee'] },
+              { name: 'ประกาศข่าวสาร', icon: 'megaphone', visibleFor: ['admin', 'employee'] },
+              { name: 'รายงาน', icon: 'file-bar-chart', visibleFor: ['admin'] }
+            ]
+          }
+        ];
+
+        const updateLucideIcons = () => {
+          nextTick(() => {
+            if (typeof lucide !== 'undefined') {
+              lucide.createIcons();
+            }
+          });
+        };
+
+        // Strict Edit Checks: Allow editing only associated/owner items and only if they are pending (For Employees)
+        const canEditItem = (item, type) => {
+          if (userRole.value === 'admin') return true;
+          
+          // Verify Owner
+          const ownerName = currentUser.value.Name;
+          const isOwner = (item.EmpName === ownerName || item.Requester === ownerName || item.Assignee === ownerName || item.Requester === ownerName);
+          if (!isOwner) return false;
+
+          // Verify Status: only allow edits for pending/reviewing status
+          const status = item.Status || '';
+          return ['รอพิจารณา', 'รออนุมัติ', 'รอการตรวจสอบ', 'รอดำเนินการ'].includes(status);
+        };
+
+        const canDeleteItem = (item, type) => {
+          return canEditItem(item, type);
+        };
+
+        // Filtered lists based on logging user (For Employees)
+        const filteredLeaves = computed(() => {
+          if (userRole.value === 'admin') return leaves.value;
+          return leaves.value.filter(l => l.EmpName === currentUser.value.Name);
+        });
+
+        const filteredPayroll = computed(() => {
+          if (userRole.value === 'admin') return payroll.value;
+          return payroll.value.filter(p => p.EmpName === currentUser.value.Name);
+        });
+
+        const filteredAttendance = computed(() => {
+          if (userRole.value === 'admin') return attendance.value;
+          return attendance.value.filter(a => a.EmpName === currentUser.value.Name);
+        });
+
+        const filteredOts = computed(() => {
+          if (userRole.value === 'admin') return ots.value;
+          return ots.value.filter(o => o.EmpName === currentUser.value.Name);
+        });
+
+        const filteredShifts = computed(() => {
+          if (userRole.value === 'admin') return shifts.value;
+          return shifts.value.filter(sh => sh.EmpName === currentUser.value.Name);
+        });
+
+        const filteredOnboardings = computed(() => {
+          if (userRole.value === 'admin') return onboardings.value;
+          return onboardings.value.filter(o => o.EmpName === currentUser.value.Name);
+        });
+
+        const filteredPerformanceEvaluations = computed(() => {
+          if (userRole.value === 'admin') return performanceEvaluations.value;
+          return performanceEvaluations.value.filter(pf => pf.EmpName === currentUser.value.Name);
+        });
+
+        const filteredAssets = computed(() => {
+          if (userRole.value === 'admin') return assets.value;
+          return assets.value.filter(as => as.Assignee === currentUser.value.Name);
+        });
+
+        const filteredExpenses = computed(() => {
+          if (userRole.value === 'admin') return expenses.value;
+          return expenses.value.filter(ex => ex.Requester === currentUser.value.Name);
+        });
+
+        const filteredBenefits = computed(() => {
+          if (userRole.value === 'admin') return benefits.value;
+          return benefits.value.filter(bn => bn.EmpName === currentUser.value.Name);
+        });
+
+        const filteredRoomBookings = computed(() => {
+          if (userRole.value === 'admin') return roomBookings.value;
+          return roomBookings.value.filter(rb => rb.Requester === currentUser.value.Name);
+        });
+
+        // Form Login Submit Verification
+        const handleLoginSubmit = () => {
+          loginLoading.value = true;
+          if (isGasServer.value) {
+            google.script.run
+              .withSuccessHandler((res) => {
+                loginLoading.value = false;
+                if (res.success) {
+                  isLoggedIn.value = true;
+                  userRole.value = res.role;
+                  currentUser.value = res.user;
+                  triggerAlert('เข้าสู่ระบบสำเร็จ! ยินดีต้อนรับคุณ ' + currentUser.value.Name, 'เรียบร้อย');
+                  refreshAllData();
+                } else {
+                  alert(res.message);
+                }
+              })
+              .withFailureHandler((err) => {
+                loginLoading.value = false;
+                alert('เกิดข้อผิดพลาดในการรันระบบตรวจสอบสิทธิ์: ' + err);
+              })
+              .checkLogin(loginForm.value.username, loginForm.value.password);
+          } else {
+            loginLoading.value = false;
+            if (loginForm.value.username === 'admin' && loginForm.value.password === 'admin123') {
+              isLoggedIn.value = true;
+              userRole.value = 'admin';
+              currentUser.value = { ID: 'ADMIN', Name: 'System Admin', Position: 'Administrator' };
+              refreshAllData();
+            } else if (loginForm.value.username.toUpperCase() === 'E001' && loginForm.value.password === 'emp123') {
+              isLoggedIn.value = true;
+              userRole.value = 'employee';
+              currentUser.value = { ID: 'E001', Name: 'สมชาย ใจดี', Position: 'CEO', Department: 'บริหาร' };
+              refreshAllData();
+            } else {
+              alert('สิทธิ์และพาสเวิร์ดทดลองแบบจำลองไม่ถูกต้อง');
+            }
+          }
+        };
+
+        const handleLogout = () => {
+          isLoggedIn.value = false;
+          userRole.value = '';
+          currentUser.value = {};
+          loginForm.value = { username: 'admin', password: 'admin123' };
+          activeTab.value = 'Dashboard';
+          updateLucideIcons();
+        };
+
+        // Real-time Database Syncing
+        const refreshAllData = () => {
+          if (!isLoggedIn.value) return;
+          if (isGasServer.value) {
+            google.script.run
+              .withSuccessHandler((data) => {
+                employees.value = data.employees || [];
+                departments.value = data.departments || [];
+                positions.value = data.positions || [];
+                payroll.value = data.payroll || [];
+                leaves.value = data.leaves || [];
+                attendance.value = data.attendance || [];
+                shifts.value = data.shifts || [];
+                recruitments.value = data.recruitments || [];
+                candidates.value = data.candidates || [];
+                trainings.value = data.trainings || [];
+                assets.value = data.assets || [];
+                expenses.value = data.expenses || [];
+                roomBookings.value = data.roomBookings || [];
+                okrs.value = data.okrs || [];
+                onboardings.value = data.onboardings || [];
+                benefits.value = data.benefits || [];
+                
+                // Fetch supplementary sheets (OTs, Documents, Appraisals, etc.)
+                google.script.run.withSuccessHandler(res => { ots.value = res || []; }).getTableData("Ots");
+                google.script.run.withSuccessHandler(res => { documents.value = res || []; }).getTableData("Documents");
+                google.script.run.withSuccessHandler(res => { announcements.value = res || []; }).getTableData("Announcements");
+                google.script.run.withSuccessHandler(res => { performanceEvaluations.value = res || []; }).getTableData("PerformanceEvaluations");
+
+                updateLucideIcons();
+              })
+              .fetchAllHRData();
+          } else {
+            // Simulated fallback memory
+            employees.value = [
+              { ID: "E001", Name: "สมชาย ใจดี", Gender: "ชาย", Department: "บริหาร", Position: "CEO", StartDate: "2018-01-15", Phone: "0812345001", Status: "active", Email: "somchai@company.com", Password: "emp123" },
+              { ID: "E002", Name: "สุนีย์ รักงาน", Gender: "หญิง", Department: "ทรัพยากรบุคคล", Position: "HR Manager", StartDate: "2019-03-01", Phone: "0812345002", Status: "active", Email: "sunee@company.com", Password: "emp123" }
+            ];
+            departments.value = [{ Code: "MGT", Name: "บริหาร", Details: "กลยุทธ์ผู้บริหารสูงสุด" }];
+            positions.value = [{ ID: "P01", Title: "CEO", Level: "Executive", Department: "บริหาร", MinSalary: 150000, MaxSalary: 300000 }];
+            payroll.value = [{ SlipID: "PR001", Period: "2026-04", EmpName: "สมชาย ใจดี", BaseSalary: 180000, OT: 3000, Bonus: 5000, Deductions: 9750, NetSalary: 178250 }];
+            leaves.value = [{ ID: "L01", EmpName: "สมชาย ใจดี", Type: "ลาพักร้อน", StartDate: "2026-06-05", EndDate: "2026-06-05", Days: 1, Status: "รอพิจารณา", Reason: "ไปพักร้อนครอบครัว" }];
+            attendance.value = [{ ID: "A01", EmpName: "สมชาย ใจดี", Date: "2026-06-03", CheckIn: "08:15", CheckOut: "17:30", Status: "ปกติ" }];
+            shifts.value = [{ ID: "SF01", EmpName: "สมชาย ใจดี", Date: "2026-06-03", Shift: "เช้า", Time: "08:00 - 17:00", Note: "ประจำสำนักงานใหญ่" }];
+            recruitments.value = [{ ID: "RC01", JobTitle: "Software Engineer", Department: "ไอที", Openings: 2, Status: "เปิดรับสมัคร" }];
+            candidates.value = [{ ID: "CD01", Name: "กิตติภพ ร่วมใจ", JobTitle: "Software Engineer", Phone: "0810001111", Email: "kittipop@email.com", Note: "เขียนสคริปต์เก่งมาก", Status: "ใบสมัครเข้าใหม่" }];
+            onboardings.value = [{ ID: "OB01", EmpName: "สมชาย ใจดี", Step: "แนะนำกลุ่มผู้บริหารระดับสูง", Status: "สำเร็จ" }];
+            trainings.value = [{ ID: "TR01", Title: "การจัดการข้อมูลบน Google Sheets", Category: "ไอทีและโปรแกรมเมอร์", Instructor: "คุณสมาร์ท", Hours: 4, Status: "เปิดรับสมัคร" }];
+            okrs.value = [{ ID: "OK01", Objective: "พัฒนาระบบ HR ERP ตัวใหม่", Target: 100, Progress: 85, Status: "ดำเนินงานปกติ" }];
+            documents.value = [{ ID: "DOC01", Title: "กฎระเบียบวินัยการทำงาน.pdf", Category: "ระเบียบข้อบังคับ", Link: "#", Description: "ฉบับปรับปรุงปี 2569" }];
+            assets.value = [{ ID: "AS01", Name: "MacBook Pro 16", Category: "อุปกรณ์คอมพิวเตอร์", Assignee: "สมชาย ใจดี", Date: "2026-01-10", Status: "ใช้งานปกติ" }];
+            expenses.value = [{ ID: "EX01", Requester: "สมชาย ใจดี", Category: "เดินทาง", Description: "ค่าเดินทางออกตรวจงานต่างจังหวัด", Amount: 2400, Status: "รอการตรวจสอบ" }];
+            benefits.value = [{ ID: "BN01", EmpName: "สมชาย ใจดี", Type: "ตรวจสุขภาพประจำปี", Amount: 3000, Status: "อนุมัติแล้ว" }];
+            roomBookings.value = [{ ID: "RB01", RoomName: "ห้องประชุมใหญ่ A", Requester: "สมชาย ใจดี", Date: "2026-06-15", Time: "13:00 - 15:00", Status: "จองสำเร็จ" }];
+            ots.value = [{ ID: "OT01", EmpName: "สมชาย ใจดี", Date: "2026-06-03", Hours: 3, Reason: "เขียนสคริปต์ระบบ ERP ต่อ", Status: "รอพิจารณา" }];
+            announcements.value = [{ ID: "AN01", Title: "แจ้งงดใช้งานห้องประชุมชั้น 2 ชั่วคราว", Details: "เนื่องจากระบบแอร์มีปัญหาชั่วคราว จึงปิดซ่อมบำรุงจนถึงวันที่ 5 มิ.ย.", Date: "2026-06-03", Priority: "สูง" }];
+            performanceEvaluations.value = [{ ID: "PF01", EmpName: "สมชาย ใจดี", Evaluator: "System Admin", QualityScore: 5, OnTimeScore: 5, CommunicationScore: 4, ReviewNote: "มีความกระตือรือร้นในการสร้างนวัตกรรมองค์กรอย่างต่อเนื่อง" }];
+            
+            updateLucideIcons();
+          }
+        };
+
+        const triggerAlert = (message, title = 'HR Pro Suite') => {
+          toast.value = { show: true, title, message };
+          setTimeout(() => { toast.value.show = false; }, 3000);
+        };
+
+        const quickCheck = (type) => {
+          triggerAlert(`ลงเวลา "${type}" สำเร็จเรียบร้อยแล้ว`, 'บันทึกเวลา');
+        };
+
+        // Submit attendance with clock-in/out to Sheet
+        const saveAttendance = (statusType) => {
+          const now = new Date();
+          const timeStr = now.toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit' });
+          const dateStr = now.toLocaleDateString('th-TH', { year: 'numeric', month: '2-digit', day: '2-digit' });
+          
+          const newAtt = {
+            ID: 'A' + String(attendance.value.length + 1).padStart(3, '0'),
+            EmpName: currentUser.value.Name || 'สมชาย ใจดี',
+            Date: dateStr,
+            CheckIn: statusType.includes('เช็คอิน') ? timeStr : '-',
+            CheckOut: statusType.includes('เช็คเอาท์') ? timeStr : '-',
+            Status: statusType
+          };
+
+          if (isGasServer.value) {
+            google.script.run
+              .withSuccessHandler(() => {
+                refreshAllData();
+                triggerAlert('บันทึกเวลางานลงตารางเรียบร้อยแล้ว!', 'สำเร็จ');
+              })
+              .addRowData('Attendance', newAtt);
+          } else {
+            attendance.value.unshift(newAtt);
+            triggerAlert('จำลองลงเวลาเสร็จสมบูรณ์');
+          }
+        };
+
+        // Admin Approval Actions
+        const approveLeave = (leaveId, nextStatus) => {
+          if (isGasServer.value) {
+            google.script.run
+              .withSuccessHandler(() => { refreshAllData(); triggerAlert('เปลี่ยนสถานะใบลาสำเร็จ'); })
+              .updateRowData('Leaves', 'ID', leaveId, { Status: nextStatus });
+          } else {
+            leaves.value = leaves.value.map(lv => lv.ID === leaveId ? { ...lv, Status: nextStatus } : lv);
+          }
+        };
+
+        const approveExpense = (expenseId, nextStatus) => {
+          if (isGasServer.value) {
+            google.script.run
+              .withSuccessHandler(() => { refreshAllData(); triggerAlert('เปลี่ยนสถานะค่าใช้จ่ายสำเร็จ'); })
+              .updateRowData('Expenses', 'ID', expenseId, { Status: nextStatus });
+          } else {
+            expenses.value = expenses.value.map(ex => ex.ID === expenseId ? { ...ex, Status: nextStatus } : ex);
+          }
+        };
+
+        const approveOT = (otId, nextStatus) => {
+          if (isGasServer.value) {
+            google.script.run
+              .withSuccessHandler(() => { refreshAllData(); triggerAlert('อนุมัติสถานะล่วงเวลาเรียบร้อย'); })
+              .updateRowData('Ots', 'ID', otId, { Status: nextStatus });
+          } else {
+            ots.value = ots.value.map(o => o.ID === otId ? { ...o, Status: nextStatus } : o);
+          }
+        };
+
+        const approveBenefit = (benefitId, nextStatus) => {
+          if (isGasServer.value) {
+            google.script.run
+              .withSuccessHandler(() => { refreshAllData(); triggerAlert('อนุมัติเบิกสวัสดิการสำเร็จ'); })
+              .updateRowData('Benefits', 'ID', benefitId, { Status: nextStatus });
+          } else {
+            benefits.value = benefits.value.map(b => b.ID === benefitId ? { ...b, Status: nextStatus } : b);
+          }
+        };
+
+        const updateCandidateStatus = (candId, nextStage) => {
+          if (isGasServer.value) {
+            google.script.run
+              .withSuccessHandler(() => { refreshAllData(); triggerAlert('ย้ายผู้สมัครเข้ากระบวนการใหม่สำเร็จ'); })
+              .updateRowData('Candidates', 'ID', candId, { Status: nextStage });
+          } else {
+            candidates.value = candidates.value.map(c => c.ID === candId ? { ...c, Status: nextStage } : c);
+          }
+        };
+
+        const toggleOnboardingStatus = (onbId) => {
+          const matched = onboardings.value.find(o => o.ID === onbId);
+          if (!matched) return;
+          const nextStatus = matched.Status === 'สำเร็จ' ? 'รอดำเนินการ' : 'สำเร็จ';
+          
+          if (isGasServer.value) {
+            google.script.run
+              .withSuccessHandler(() => { refreshAllData(); triggerAlert('ปรับปรุงขั้นตอน Onboarding เรียบร้อย'); })
+              .updateRowData('Onboardings', 'ID', onbId, { Status: nextStatus });
+          } else {
+            matched.Status = nextStatus;
+          }
+        };
+
+        const deleteItem = (sheetName, keyColName, keyValue) => {
+          if (!confirm(`ยืนยันลบรายการ [${keyValue}] ออกจากฐานข้อมูลหรือไม่?`)) return;
+          if (isGasServer.value) {
+            google.script.run
+              .withSuccessHandler(() => { refreshAllData(); triggerAlert('ลบแถวข้อมูลในสเปรดชีตเรียบร้อย'); })
+              .deleteRowData(sheetName, keyColName, keyValue);
+          } else {
+            triggerAlert('โหมดจำลองออฟไลน์: ลบรายการจำลองเสร็จสิ้น');
+          }
+        };
+
+        // Open Modal and Instantiate Fields dynamically
+        const openModal = (type, mode, data = null) => {
+          activeModal.value = { show: true, type, mode, data };
+          if (mode === 'add') {
+            const idSuffix = String(Math.floor(Math.random() * 9000) + 1000);
+            if (type === 'employee') {
+              formModel.value = { ID: 'E' + idSuffix, Name: '', Gender: 'ชาย', Department: 'ไอที', Position: 'Officer', StartDate: new Date().toISOString().split('T')[0], Phone: '', Status: 'active', Email: '', Password: 'emp123' };
+            } else if (type === 'department') {
+              formModel.value = { Code: 'DEPT' + idSuffix, Name: '', Details: '' };
+            } else if (type === 'position') {
+              formModel.value = { ID: 'POS' + idSuffix, Title: '', Level: 'Officer', Department: 'ไอที', MinSalary: 15000, MaxSalary: 45000 };
+            } else if (type === 'roomBooking') {
+              formModel.value = { ID: 'RB' + idSuffix, RoomName: 'ห้องประชุมใหญ่ A', Requester: currentUser.value.Name || 'สมชาย ใจดี', Date: new Date().toISOString().split('T')[0], Time: '10:00 - 12:00', Status: 'จองสำเร็จ' };
+            } else if (type === 'leave') {
+              formModel.value = { ID: 'L' + idSuffix, EmpName: currentUser.value.Name || 'สมชาย ใจดี', Type: 'ลากิจ', StartDate: new Date().toISOString().split('T')[0], EndDate: new Date().toISOString().split('T')[0], Days: 1, Status: 'รอพิจารณา', Reason: '' };
+            } else if (type === 'expense') {
+              formModel.value = { ID: 'EX' + idSuffix, Requester: currentUser.value.Name || 'สมชาย ใจดี', Category: 'เดินทาง', Description: '', Amount: 500, Status: 'รอการตรวจสอบ' };
+            } else if (type === 'ot') {
+              formModel.value = { ID: 'OT' + idSuffix, EmpName: currentUser.value.Name || 'สมชาย ใจดี', Date: new Date().toISOString().split('T')[0], Hours: 2, Reason: '', Status: 'รอพิจารณา' };
+            } else if (type === 'shift') {
+              formModel.value = { ID: 'SF' + idSuffix, EmpName: '', Date: new Date().toISOString().split('T')[0], Shift: 'เช้า', Time: '08:00 - 17:00', Note: '' };
+            } else if (type === 'recruitment') {
+              formModel.value = { ID: 'RC' + idSuffix, JobTitle: '', Department: 'ไอที', Openings: 1, Status: 'เปิดรับสมัคร' };
+            } else if (type === 'candidate') {
+              formModel.value = { ID: 'CD' + idSuffix, Name: '', JobTitle: '', Phone: '', Email: '', Note: '', Status: 'ใบสมัครเข้าใหม่' };
+            } else if (type === 'onboarding') {
+              formModel.value = { ID: 'OB' + idSuffix, EmpName: '', Step: 'อบรมระบบไอทีพื้นฐาน', Status: 'รอดำเนินการ' };
+            } else if (type === 'training') {
+              formModel.value = { ID: 'TR' + idSuffix, Title: '', Category: 'วิชาชีพเฉพาะ', Instructor: '', Hours: 4, Status: 'เปิดรับสมัคร' };
+            } else if (type === 'performance') {
+              formModel.value = { ID: 'PF' + idSuffix, EmpName: '', Evaluator: currentUser.value.Name, QualityScore: 5, OnTimeScore: 5, CommunicationScore: 5, ReviewNote: '' };
+            } else if (type === 'okr') {
+              formModel.value = { ID: 'OK' + idSuffix, Objective: '', Target: 100, Progress: 0, Status: 'ดำเนินงานปกติ' };
+            } else if (type === 'document') {
+              formModel.value = { ID: 'DOC' + idSuffix, Title: '', Category: 'ระเบียบวินัย', Link: '#', Description: '' };
+            } else if (type === 'asset') {
+              formModel.value = { ID: 'AS' + idSuffix, Name: '', Category: 'อุปกรณ์ไอที', Assignee: '', Date: new Date().toISOString().split('T')[0], Status: 'ใช้งานปกติ' };
+            } else if (type === 'benefit') {
+              formModel.value = { ID: 'BN' + idSuffix, EmpName: currentUser.value.Name || 'สมชาย ใจดี', Type: 'ตรวจสุขภาพประจำปี', Amount: 3000, Status: 'รอพิจารณา' };
+            } else if (type === 'announcement') {
+              formModel.value = { ID: 'AN' + idSuffix, Title: '', Details: '', Date: new Date().toISOString().split('T')[0], Priority: 'ปกติ' };
+            } else if (type === 'payroll') {
+              formModel.value = { SlipID: 'PR' + idSuffix, Period: new Date().toISOString().slice(0, 7), EmpName: '', BaseSalary: 25000, OT: 0, Bonus: 0, Deductions: 1250, NetSalary: 23750 };
+            }
+          } else {
+            formModel.value = { ...data };
+          }
+          updateLucideIcons();
+        };
+
+        const submitForm = () => {
+          const type = activeModal.value.type;
+          const mode = activeModal.value.mode;
+          
+          let sheetName = '';
+          let keyCol = '';
+          let keyVal = '';
+
+          if (type === 'employee') { sheetName = 'Employees'; keyCol = 'ID'; keyVal = formModel.value.ID; }
+          else if (type === 'department') { sheetName = 'Departments'; keyCol = 'Code'; keyVal = formModel.value.Code; }
+          else if (type === 'position') { sheetName = 'Positions'; keyCol = 'ID'; keyVal = formModel.value.ID; }
+          else if (type === 'roomBooking') { sheetName = 'RoomBookings'; keyCol = 'ID'; keyVal = formModel.value.ID; }
+          else if (type === 'leave') { sheetName = 'Leaves'; keyCol = 'ID'; keyVal = formModel.value.ID; }
+          else if (type === 'expense') { sheetName = 'Expenses'; keyCol = 'ID'; keyVal = formModel.value.ID; }
+          else if (type === 'ot') { sheetName = 'Ots'; keyCol = 'ID'; keyVal = formModel.value.ID; }
+          else if (type === 'shift') { sheetName = 'Shifts'; keyCol = 'ID'; keyVal = formModel.value.ID; }
+          else if (type === 'recruitment') { sheetName = 'Recruitments'; keyCol = 'ID'; keyVal = formModel.value.ID; }
+          else if (type === 'candidate') { sheetName = 'Candidates'; keyCol = 'ID'; keyVal = formModel.value.ID; }
+          else if (type === 'onboarding') { sheetName = 'Onboardings'; keyCol = 'ID'; keyVal = formModel.value.ID; }
+          else if (type === 'training') { sheetName = 'Trainings'; keyCol = 'ID'; keyVal = formModel.value.ID; }
+          else if (type === 'performance') { sheetName = 'PerformanceEvaluations'; keyCol = 'ID'; keyVal = formModel.value.ID; }
+          else if (type === 'okr') { sheetName = 'Okrs'; keyCol = 'ID'; keyVal = formModel.value.ID; }
+          else if (type === 'document') { sheetName = 'Documents'; keyCol = 'ID'; keyVal = formModel.value.ID; }
+          else if (type === 'asset') { sheetName = 'Assets'; keyCol = 'ID'; keyVal = formModel.value.ID; }
+          else if (type === 'benefit') { sheetName = 'Benefits'; keyCol = 'ID'; keyVal = formModel.value.ID; }
+          else if (type === 'announcement') { sheetName = 'Announcements'; keyCol = 'ID'; keyVal = formModel.value.ID; }
+          else if (type === 'payroll') {
+            sheetName = 'Payroll';
+            keyCol = 'SlipID';
+            keyVal = formModel.value.SlipID;
+            formModel.value.NetSalary = Number(formModel.value.BaseSalary) + Number(formModel.value.OT) + Number(formModel.value.Bonus) - Number(formModel.value.Deductions);
+          }
+
+          if (isGasServer.value) {
+            if (mode === 'add') {
+              google.script.run
+                .withSuccessHandler(() => {
+                  refreshAllData();
+                  activeModal.value.show = false;
+                  triggerAlert('บันทึกเพิ่มเข้าฐานข้อมูล Google Sheet สำเร็จ', 'สำเร็จ');
+                })
+                .addRowData(sheetName, formModel.value);
+            } else {
+              google.script.run
+                .withSuccessHandler(() => {
+                  refreshAllData();
+                  activeModal.value.show = false;
+                  triggerAlert('ปรับปรุงแถวข้อมูลเรียบร้อยแล้ว', 'สำเร็จ');
+                })
+                .updateRowData(sheetName, keyCol, keyVal, formModel.value);
+            }
+          } else {
+            // Local array storage fallback
+            triggerAlert('จำลองการทำงานเรียบร้อย');
+            activeModal.value.show = false;
+          }
+        };
+
+        const sendLineAlert = (pRow) => {
+          const text = `💵 สลิปเงินเดือนพนักงาน\nคุณ: ${pRow.EmpName}\nเงินเดือนพื้นฐาน: ฿${Number(pRow.BaseSalary).toLocaleString()}\nยอดโอนสุทธิประจำงวด: ฿${Number(pRow.NetSalary).toLocaleString()}`;
+          if (isGasServer.value) {
+            google.script.run
+              .withSuccessHandler(() => { triggerAlert('ส่งสลิปผ่านทาง API LINE Notify สำเร็จ!', 'LINE Notify'); })
+              .sendLineNotifyMessage(text);
+          } else {
+            triggerAlert(`[จำลอง LINE] -> ${text}`);
+          }
+        };
+
+        onMounted(() => {
+          updateLucideIcons();
+          const d = new Date();
+          currentTime.value = d.toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit' });
+        });
+
+        return {
+          isGasServer,
+          isLoggedIn,
+          userRole,
+          currentUser,
+          loginForm,
+          loginLoading,
+          currentTime,
+          activeTab,
+          menuGroups,
+          employees,
+          departments,
+          positions,
+          payroll,
+          leaves,
+          attendance,
+          shifts,
+          recruitments,
+          candidates,
+          onboardings,
+          trainings,
+          okrs,
+          documents,
+          assets,
+          expenses,
+          roomBookings,
+          ots,
+          announcements,
+          benefits,
+          performanceEvaluations,
+          activeModal,
+          formModel,
+          toast,
+          canEditItem,
+          canDeleteItem,
+          filteredLeaves,
+          filteredPayroll,
+          filteredAttendance,
+          filteredOts,
+          filteredShifts,
+          filteredOnboardings,
+          filteredPerformanceEvaluations,
+          filteredAssets,
+          filteredExpenses,
+          filteredBenefits,
+          filteredRoomBookings,
+          handleLoginSubmit,
+          handleLogout,
+          refreshAllData,
+          quickCheck,
+          saveAttendance,
+          approveLeave,
+          approveExpense,
+          approveOT,
+          approveBenefit,
+          updateCandidateStatus,
+          toggleOnboardingStatus,
+          deleteItem,
+          openModal,
+          submitForm,
+          sendLineAlert,
+          triggerAlert,
+          updateLucideIcons
+        };
+      }
+    }).mount('#app');
+  </script>
+</body>
+</html>
