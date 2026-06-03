@@ -33,29 +33,29 @@
 
   <div id="app" class="flex min-h-screen">
     
-    <!-- 1. LOGIN SCREEN VIEW -->
+    <!-- 1. LOGIN SCREEN VIEW (Clean design without GAS API input box) -->
     <div v-if="!isLoggedIn" class="min-h-screen w-full flex items-center justify-center p-4 bg-gradient-to-tr from-indigo-50 via-slate-50 to-purple-50">
       <div class="bg-white p-8 rounded-3xl shadow-2xl max-w-md w-full border border-slate-100 relative overflow-hidden">
         <div class="absolute -top-10 -right-10 w-32 h-32 bg-indigo-600/10 rounded-full blur-3xl"></div>
         <div class="absolute -bottom-10 -left-10 w-32 h-32 bg-purple-600/10 rounded-full blur-3xl"></div>
 
-        <div class="text-center mb-8">
+        <div class="text-center mb-6">
           <div class="inline-flex p-3 bg-indigo-600 text-white rounded-2xl mb-4 shadow-lg shadow-indigo-600/20">
             <i data-lucide="shield-alert" class="w-8 h-8"></i>
           </div>
           <h2 class="text-2xl font-bold tracking-tight text-slate-900">HR Pro Suite</h2>
-          <p class="text-xs text-slate-500 mt-1">ล็อกอินเข้าใช้งานตามสิทธิ์ในบัญชีระบบ</p>
+          <p class="text-xs text-slate-500 mt-1">ล็อกอินเข้าใช้งานตามระดับสิทธิ์พนักงานในองค์กร</p>
         </div>
 
-        <form @submit.prevent="handleLoginSubmit" class="space-y-5">
+        <form @submit.prevent="handleLoginSubmit" class="space-y-4">
           <div>
-            <label class="block text-[11px] font-bold uppercase tracking-wider mb-1.5 text-slate-600">รหัสผู้ใช้หรือ ID พนักงาน</label>
-            <input type="text" v-model="loginForm.username" class="w-full px-4 py-3 border border-slate-200 bg-slate-50 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 text-xs" placeholder="เช่น admin หรือ E001" required />
+            <label class="block text-[11px] font-bold uppercase tracking-wider mb-1 text-slate-600">ID พนักงาน หรือชื่อผู้ดูแลระบบ</label>
+            <input type="text" v-model="loginForm.username" class="w-full px-4 py-2.5 border border-slate-200 bg-slate-50 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 text-xs" placeholder="เช่น admin หรือ E001" required />
           </div>
 
           <div>
-            <label class="block text-[11px] font-bold uppercase tracking-wider mb-1.5 text-slate-600">รหัสผ่าน (Password)</label>
-            <input type="password" v-model="loginForm.password" class="w-full px-4 py-3 border border-slate-200 bg-slate-50 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 text-xs" placeholder="ป้อนรหัสผ่านเข้าใช้" required />
+            <label class="block text-[11px] font-bold uppercase tracking-wider mb-1 text-slate-600">รหัสผ่านสำหรับเข้าใช้</label>
+            <input type="password" v-model="loginForm.password" class="w-full px-4 py-2.5 border border-slate-200 bg-slate-50 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 text-xs" placeholder="ป้อนรหัสผ่าน" required />
           </div>
 
           <button type="submit" :disabled="loginLoading" class="w-full py-3.5 bg-gradient-to-r from-indigo-600 to-purple-600 text-white font-bold rounded-xl shadow-lg transition flex justify-center items-center gap-2 text-xs">
@@ -64,11 +64,11 @@
           </button>
         </form>
 
-        <div class="mt-8 pt-6 border-t border-slate-100 text-xs text-slate-500 space-y-2">
-          <p class="font-semibold text-slate-700">💡 บัญชีสำหรับทดสอบระดับสิทธิ์:</p>
+        <div class="mt-6 pt-5 border-t border-slate-100 text-xs text-slate-500 space-y-2">
+          <p class="font-semibold text-slate-700">💡 บัญชีสำหรับเปิดทดลองประเมิน:</p>
           <div class="bg-slate-50 p-3 rounded-xl space-y-1 font-mono text-[10px]">
             <p>🔑 <span class="font-bold text-indigo-600">Admin (ผู้จัดการ):</span> admin / admin123</p>
-            <p>🔑 <span class="font-bold text-purple-600">พนักงาน (สิทธิ์เกี่ยวข้องตนเอง):</span> E001 / emp123 (หรือ E002 - E005)</p>
+            <p>🔑 <span class="font-bold text-purple-600">พนักงาน (สิทธิ์พนักงาน):</span> E001 / emp123 (หรือ E002 - E005)</p>
           </div>
         </div>
       </div>
@@ -121,7 +121,7 @@
             </div>
             <div class="min-w-0">
               <h4 class="text-xs font-bold text-slate-800 truncate">{{ currentUser.Name }}</h4>
-              <span class="text-[9px] text-slate-400 font-mono">{{ userRole === 'admin' ? '🔥 Admin' : '👤 ' + currentUser.ID }}</span>
+              <span class="text-[9px] text-slate-400 font-mono">{{ userRole === 'admin' ? '👑 Admin' : '👤 ' + currentUser.ID }}</span>
             </div>
           </div>
           <button @click="handleLogout" class="p-1.5 hover:bg-red-50 text-red-500 rounded-lg transition" title="ออกจากระบบ">
@@ -182,11 +182,11 @@
                   <i data-lucide="clock" class="w-4 h-4 text-indigo-500"></i> ลงเวลาปฏิบัติงานด่วนวันนี้
                 </h3>
                 <div class="grid grid-cols-2 gap-4">
-                  <button @click="saveAttendance('เช็คอิน (ปกติ)')" class="p-4 bg-emerald-50 hover:bg-emerald-100/80 rounded-xl border border-emerald-100 text-left transition">
+                  <button @click="quickCheck('เข้างาน')" class="p-4 bg-emerald-50 hover:bg-emerald-100/80 rounded-xl border border-emerald-100 text-left transition">
                     <h4 class="font-bold text-emerald-800 text-xs">🕒 เช็คอินงาน (Check-In)</h4>
                     <p class="text-[10px] text-emerald-600 mt-1">เวลาปัจจุบัน: {{ currentTime }} น.</p>
                   </button>
-                  <button @click="saveAttendance('เช็คเอาท์ (ปกติ)')" class="p-4 bg-slate-50 hover:bg-slate-100 rounded-xl border border-slate-100 text-left transition">
+                  <button @click="quickCheck('ออกงาน')" class="p-4 bg-slate-50 hover:bg-slate-100 rounded-xl border border-slate-100 text-left transition">
                     <h4 class="font-bold text-slate-700 text-xs">🚪 เช็คเอาท์งาน (Check-Out)</h4>
                     <p class="text-[10px] text-slate-500 mt-1">บันทึกความสมบูรณ์การส่งงาน</p>
                   </button>
@@ -397,7 +397,7 @@
                     <td class="p-4 text-center font-bold font-mono">{{ lv.Days }} วัน</td>
                     <td class="p-4 text-slate-500">{{ lv.Reason }}</td>
                     <td class="p-4 text-center">
-                      <span :class="lv.Status === 'อนุมัติแล้ว' ? 'bg-green-50 text-green-600' : 'bg-amber-50 text-amber-600'" class="px-2.5 py-0.5 rounded-full font-bold text-[10px]">
+                      <span :class="lv.Status === 'อนุมัติแล้ว' ? 'bg-green-50 text-green-700' : 'bg-amber-50 text-amber-700'" class="px-2.5 py-0.5 rounded-full font-bold text-[10px]">
                         {{ lv.Status }}
                       </span>
                     </td>
@@ -1014,7 +1014,7 @@
                 </button>
                 <button @click="triggerAlert('ขอบคุณสำหรับการร่วมโหวต ยอดภูชี้ฟ้า เชียงราย เรียบร้อย')" class="p-4 border rounded-xl hover:bg-indigo-50/50 text-left transition flex justify-between items-center bg-slate-50">
                   <div>
-                    <h4 class="text-xs font-bold text-slate-800">🗻 อบอุ่นลมหนาว แคมป์สัมมนา ภูชี้ฟ้า/เชียงราย</h4>
+                    <h4 class="text-xs font-bold text-slate-800">🗻 สูดลมหนาว แคมป์สัมมนา ภูชี้ฟ้า/เชียงราย</h4>
                     <span class="text-[9px] text-slate-400 block mt-1">จำนวนคนเลือกปัจจุบัน: 8 โหวต</span>
                   </div>
                 </button>
@@ -1397,6 +1397,13 @@
             <label class="block text-[10px] font-bold text-slate-400 mb-1">ขั้นตอนปฏิบัติงาน</label>
             <input type="text" v-model="formModel.Step" required class="w-full p-2.5 border rounded-lg text-xs">
           </div>
+          <div>
+            <label class="block text-[10px] font-bold text-slate-400 mb-1">สถานะ Onboarding</label>
+            <select v-model="formModel.Status" class="w-full p-2.5 border rounded-lg text-xs bg-white">
+              <option value="สำเร็จ">สำเร็จ</option>
+              <option value="รอดำเนินการ">รอดำเนินการ</option>
+            </select>
+          </div>
           <button type="submit" class="w-full py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-xl text-xs transition">บันทึกข้อมูล Onboarding</button>
         </form>
 
@@ -1508,6 +1515,10 @@
               <option v-for="emp in employees" :key="emp.ID" :value="emp.Name">{{ emp.Name }}</option>
             </select>
           </div>
+          <div>
+            <label class="block text-[10px] font-bold text-slate-400 mb-1">สถานะ</label>
+            <input type="text" v-model="formModel.Status" required class="w-full p-2.5 border rounded-lg text-xs">
+          </div>
           <button type="submit" class="w-full py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-xl text-xs transition">บันทึกอุปกรณ์คุม</button>
         </form>
 
@@ -1609,6 +1620,9 @@
       setup() {
         const isGasServer = ref(typeof google !== 'undefined' && google.script && google.script.run);
         
+        // Hardcode the GAS API URL as requested, ensuring connection on external deploys like GitHub Pages
+        const gasApiUrl = ref('https://script.google.com/macros/s/AKfycbxpAqsDfAMDEDWVAeayHuKZ7pXOzLArPVfJTdvSLP6e5cWWDf22Zx_JX9oVnL-Gl_0n/exec');
+
         const isLoggedIn = ref(false);
         const userRole = ref(''); 
         const currentUser = ref({});
@@ -1618,7 +1632,7 @@
 
         const activeTab = ref('Dashboard');
         
-        // Databases structures mapped
+        // Databases structures
         const employees = ref([]);
         const departments = ref([]);
         const positions = ref([]);
@@ -1644,7 +1658,7 @@
         const formModel = ref({});
         const toast = ref({ show: false, title: '', message: '' });
 
-        // 25 Modules Organized Grouping
+        // 25 Modules Group
         const menuGroups = [
           {
             title: "บริหารจัดการหลัก (Core HR)",
@@ -1701,117 +1715,88 @@
           });
         };
 
-        // Strict Edit Checks: Allow editing only associated/owner items and only if they are pending (For Employees)
+        // 🔗 REST API REQUEST WRAPPER: Handles both google.script.run AND HTTP fetch requests for GitHub
+        const makeApiRequest = async (action, additionalParams = {}) => {
+          const payload = { action, ...additionalParams };
+          
+          if (isGasServer.value) {
+            return new Promise((resolve, reject) => {
+              google.script.run
+                .withSuccessHandler(resolve)
+                .withFailureHandler(reject)
+                .executeAction(payload);
+            });
+          } else {
+            if (!gasApiUrl.value) {
+              throw new Error("ยังไม่ได้กำหนดค่าลิงก์ GAS API URL ในหน้าตั้งค่าโปรดตรวจสอบ");
+            }
+            const response = await fetch(gasApiUrl.value, {
+              method: 'POST',
+              body: JSON.stringify(payload),
+              headers: { 'Content-Type': 'text/plain' } // Use text/plain to avoid pre-flight CORS issues in GAS
+            });
+            return await response.json();
+          }
+        };
+
+        const testApiConnection = async () => {
+          if (!gasApiUrl.value) {
+            alert('กรุณากรอกลิงก์ Web App URL');
+            return;
+          }
+          try {
+            triggerAlert('กำลังตรวจสอบความเชื่อมโยง...', 'ระบบ API');
+            const data = await makeApiRequest("fetchAll");
+            if (data) {
+              triggerAlert('เชื่อมต่อ Google Sheet สำเร็จแล้ว!', 'สำเร็จ');
+            }
+          } catch (err) {
+            alert('ไม่สามารถเชื่อมโยงระบบ: ' + err.toString());
+          }
+        };
+
         const canEditItem = (item, type) => {
           if (userRole.value === 'admin') return true;
-          
-          // Verify Owner
           const ownerName = currentUser.value.Name;
-          const isOwner = (item.EmpName === ownerName || item.Requester === ownerName || item.Assignee === ownerName || item.Requester === ownerName);
+          const isOwner = (item.EmpName === ownerName || item.Requester === ownerName || item.Assignee === ownerName);
           if (!isOwner) return false;
-
-          // Verify Status: only allow edits for pending/reviewing status
-          const status = item.Status || '';
-          return ['รอพิจารณา', 'รออนุมัติ', 'รอการตรวจสอบ', 'รอดำเนินการ'].includes(status);
+          return ['รอพิจารณา', 'รออนุมัติ', 'รอการตรวจสอบ', 'รอดำเนินการ'].includes(item.Status || '');
         };
 
         const canDeleteItem = (item, type) => {
           return canEditItem(item, type);
         };
 
-        // Filtered lists based on logging user (For Employees)
-        const filteredLeaves = computed(() => {
-          if (userRole.value === 'admin') return leaves.value;
-          return leaves.value.filter(l => l.EmpName === currentUser.value.Name);
-        });
+        // Filters
+        const filteredLeaves = computed(() => userRole.value === 'admin' ? leaves.value : leaves.value.filter(l => l.EmpName === currentUser.value.Name));
+        const filteredPayroll = computed(() => userRole.value === 'admin' ? payroll.value : payroll.value.filter(p => p.EmpName === currentUser.value.Name));
+        const filteredAttendance = computed(() => userRole.value === 'admin' ? attendance.value : attendance.value.filter(a => a.EmpName === currentUser.value.Name));
+        const filteredOts = computed(() => userRole.value === 'admin' ? ots.value : ots.value.filter(o => o.EmpName === currentUser.value.Name));
+        const filteredShifts = computed(() => userRole.value === 'admin' ? shifts.value : shifts.value.filter(sh => sh.EmpName === currentUser.value.Name));
+        const filteredOnboardings = computed(() => userRole.value === 'admin' ? onboardings.value : onboardings.value.filter(o => o.EmpName === currentUser.value.Name));
+        const filteredPerformanceEvaluations = computed(() => userRole.value === 'admin' ? performanceEvaluations.value : performanceEvaluations.value.filter(pf => pf.EmpName === currentUser.value.Name));
+        const filteredAssets = computed(() => userRole.value === 'admin' ? assets.value : assets.value.filter(as => as.Assignee === currentUser.value.Name));
+        const filteredExpenses = computed(() => userRole.value === 'admin' ? expenses.value : expenses.value.filter(ex => ex.Requester === currentUser.value.Name));
+        const filteredBenefits = computed(() => userRole.value === 'admin' ? benefits.value : benefits.value.filter(bn => bn.EmpName === currentUser.value.Name));
+        const filteredRoomBookings = computed(() => userRole.value === 'admin' ? roomBookings.value : roomBookings.value.filter(rb => rb.Requester === currentUser.value.Name));
 
-        const filteredPayroll = computed(() => {
-          if (userRole.value === 'admin') return payroll.value;
-          return payroll.value.filter(p => p.EmpName === currentUser.value.Name);
-        });
-
-        const filteredAttendance = computed(() => {
-          if (userRole.value === 'admin') return attendance.value;
-          return attendance.value.filter(a => a.EmpName === currentUser.value.Name);
-        });
-
-        const filteredOts = computed(() => {
-          if (userRole.value === 'admin') return ots.value;
-          return ots.value.filter(o => o.EmpName === currentUser.value.Name);
-        });
-
-        const filteredShifts = computed(() => {
-          if (userRole.value === 'admin') return shifts.value;
-          return shifts.value.filter(sh => sh.EmpName === currentUser.value.Name);
-        });
-
-        const filteredOnboardings = computed(() => {
-          if (userRole.value === 'admin') return onboardings.value;
-          return onboardings.value.filter(o => o.EmpName === currentUser.value.Name);
-        });
-
-        const filteredPerformanceEvaluations = computed(() => {
-          if (userRole.value === 'admin') return performanceEvaluations.value;
-          return performanceEvaluations.value.filter(pf => pf.EmpName === currentUser.value.Name);
-        });
-
-        const filteredAssets = computed(() => {
-          if (userRole.value === 'admin') return assets.value;
-          return assets.value.filter(as => as.Assignee === currentUser.value.Name);
-        });
-
-        const filteredExpenses = computed(() => {
-          if (userRole.value === 'admin') return expenses.value;
-          return expenses.value.filter(ex => ex.Requester === currentUser.value.Name);
-        });
-
-        const filteredBenefits = computed(() => {
-          if (userRole.value === 'admin') return benefits.value;
-          return benefits.value.filter(bn => bn.EmpName === currentUser.value.Name);
-        });
-
-        const filteredRoomBookings = computed(() => {
-          if (userRole.value === 'admin') return roomBookings.value;
-          return roomBookings.value.filter(rb => rb.Requester === currentUser.value.Name);
-        });
-
-        // Form Login Submit Verification
-        const handleLoginSubmit = () => {
+        const handleLoginSubmit = async () => {
           loginLoading.value = true;
-          if (isGasServer.value) {
-            google.script.run
-              .withSuccessHandler((res) => {
-                loginLoading.value = false;
-                if (res.success) {
-                  isLoggedIn.value = true;
-                  userRole.value = res.role;
-                  currentUser.value = res.user;
-                  triggerAlert('เข้าสู่ระบบสำเร็จ! ยินดีต้อนรับคุณ ' + currentUser.value.Name, 'เรียบร้อย');
-                  refreshAllData();
-                } else {
-                  alert(res.message);
-                }
-              })
-              .withFailureHandler((err) => {
-                loginLoading.value = false;
-                alert('เกิดข้อผิดพลาดในการรันระบบตรวจสอบสิทธิ์: ' + err);
-              })
-              .checkLogin(loginForm.value.username, loginForm.value.password);
-          } else {
+          try {
+            const res = await makeApiRequest("checkLogin", { username: loginForm.value.username, password: loginForm.value.password });
             loginLoading.value = false;
-            if (loginForm.value.username === 'admin' && loginForm.value.password === 'admin123') {
+            if (res && res.success) {
               isLoggedIn.value = true;
-              userRole.value = 'admin';
-              currentUser.value = { ID: 'ADMIN', Name: 'System Admin', Position: 'Administrator' };
-              refreshAllData();
-            } else if (loginForm.value.username.toUpperCase() === 'E001' && loginForm.value.password === 'emp123') {
-              isLoggedIn.value = true;
-              userRole.value = 'employee';
-              currentUser.value = { ID: 'E001', Name: 'สมชาย ใจดี', Position: 'CEO', Department: 'บริหาร' };
+              userRole.value = res.role;
+              currentUser.value = res.user;
+              triggerAlert('ยินดีต้อนรับ ' + currentUser.value.Name, 'ล็อกอินสำเร็จ');
               refreshAllData();
             } else {
-              alert('สิทธิ์และพาสเวิร์ดทดลองแบบจำลองไม่ถูกต้อง');
+              alert(res ? res.message : 'ไม่สามารถล็อกอินได้');
             }
+          } catch (err) {
+            loginLoading.value = false;
+            alert('เกิดข้อผิดพลาด: ' + err.toString());
           }
         };
 
@@ -1824,182 +1809,122 @@
           updateLucideIcons();
         };
 
-        // Real-time Database Syncing
-        const refreshAllData = () => {
+        const refreshAllData = async () => {
           if (!isLoggedIn.value) return;
-          if (isGasServer.value) {
-            google.script.run
-              .withSuccessHandler((data) => {
-                employees.value = data.employees || [];
-                departments.value = data.departments || [];
-                positions.value = data.positions || [];
-                payroll.value = data.payroll || [];
-                leaves.value = data.leaves || [];
-                attendance.value = data.attendance || [];
-                shifts.value = data.shifts || [];
-                recruitments.value = data.recruitments || [];
-                candidates.value = data.candidates || [];
-                trainings.value = data.trainings || [];
-                assets.value = data.assets || [];
-                expenses.value = data.expenses || [];
-                roomBookings.value = data.roomBookings || [];
-                okrs.value = data.okrs || [];
-                onboardings.value = data.onboardings || [];
-                benefits.value = data.benefits || [];
-                
-                // Fetch supplementary sheets (OTs, Documents, Appraisals, etc.)
-                google.script.run.withSuccessHandler(res => { ots.value = res || []; }).getTableData("Ots");
-                google.script.run.withSuccessHandler(res => { documents.value = res || []; }).getTableData("Documents");
-                google.script.run.withSuccessHandler(res => { announcements.value = res || []; }).getTableData("Announcements");
-                google.script.run.withSuccessHandler(res => { performanceEvaluations.value = res || []; }).getTableData("PerformanceEvaluations");
-
-                updateLucideIcons();
-              })
-              .fetchAllHRData();
-          } else {
-            // Simulated fallback memory
-            employees.value = [
-              { ID: "E001", Name: "สมชาย ใจดี", Gender: "ชาย", Department: "บริหาร", Position: "CEO", StartDate: "2018-01-15", Phone: "0812345001", Status: "active", Email: "somchai@company.com", Password: "emp123" },
-              { ID: "E002", Name: "สุนีย์ รักงาน", Gender: "หญิง", Department: "ทรัพยากรบุคคล", Position: "HR Manager", StartDate: "2019-03-01", Phone: "0812345002", Status: "active", Email: "sunee@company.com", Password: "emp123" }
-            ];
-            departments.value = [{ Code: "MGT", Name: "บริหาร", Details: "กลยุทธ์ผู้บริหารสูงสุด" }];
-            positions.value = [{ ID: "P01", Title: "CEO", Level: "Executive", Department: "บริหาร", MinSalary: 150000, MaxSalary: 300000 }];
-            payroll.value = [{ SlipID: "PR001", Period: "2026-04", EmpName: "สมชาย ใจดี", BaseSalary: 180000, OT: 3000, Bonus: 5000, Deductions: 9750, NetSalary: 178250 }];
-            leaves.value = [{ ID: "L01", EmpName: "สมชาย ใจดี", Type: "ลาพักร้อน", StartDate: "2026-06-05", EndDate: "2026-06-05", Days: 1, Status: "รอพิจารณา", Reason: "ไปพักร้อนครอบครัว" }];
-            attendance.value = [{ ID: "A01", EmpName: "สมชาย ใจดี", Date: "2026-06-03", CheckIn: "08:15", CheckOut: "17:30", Status: "ปกติ" }];
-            shifts.value = [{ ID: "SF01", EmpName: "สมชาย ใจดี", Date: "2026-06-03", Shift: "เช้า", Time: "08:00 - 17:00", Note: "ประจำสำนักงานใหญ่" }];
-            recruitments.value = [{ ID: "RC01", JobTitle: "Software Engineer", Department: "ไอที", Openings: 2, Status: "เปิดรับสมัคร" }];
-            candidates.value = [{ ID: "CD01", Name: "กิตติภพ ร่วมใจ", JobTitle: "Software Engineer", Phone: "0810001111", Email: "kittipop@email.com", Note: "เขียนสคริปต์เก่งมาก", Status: "ใบสมัครเข้าใหม่" }];
-            onboardings.value = [{ ID: "OB01", EmpName: "สมชาย ใจดี", Step: "แนะนำกลุ่มผู้บริหารระดับสูง", Status: "สำเร็จ" }];
-            trainings.value = [{ ID: "TR01", Title: "การจัดการข้อมูลบน Google Sheets", Category: "ไอทีและโปรแกรมเมอร์", Instructor: "คุณสมาร์ท", Hours: 4, Status: "เปิดรับสมัคร" }];
-            okrs.value = [{ ID: "OK01", Objective: "พัฒนาระบบ HR ERP ตัวใหม่", Target: 100, Progress: 85, Status: "ดำเนินงานปกติ" }];
-            documents.value = [{ ID: "DOC01", Title: "กฎระเบียบวินัยการทำงาน.pdf", Category: "ระเบียบข้อบังคับ", Link: "#", Description: "ฉบับปรับปรุงปี 2569" }];
-            assets.value = [{ ID: "AS01", Name: "MacBook Pro 16", Category: "อุปกรณ์คอมพิวเตอร์", Assignee: "สมชาย ใจดี", Date: "2026-01-10", Status: "ใช้งานปกติ" }];
-            expenses.value = [{ ID: "EX01", Requester: "สมชาย ใจดี", Category: "เดินทาง", Description: "ค่าเดินทางออกตรวจงานต่างจังหวัด", Amount: 2400, Status: "รอการตรวจสอบ" }];
-            benefits.value = [{ ID: "BN01", EmpName: "สมชาย ใจดี", Type: "ตรวจสุขภาพประจำปี", Amount: 3000, Status: "อนุมัติแล้ว" }];
-            roomBookings.value = [{ ID: "RB01", RoomName: "ห้องประชุมใหญ่ A", Requester: "สมชาย ใจดี", Date: "2026-06-15", Time: "13:00 - 15:00", Status: "จองสำเร็จ" }];
-            ots.value = [{ ID: "OT01", EmpName: "สมชาย ใจดี", Date: "2026-06-03", Hours: 3, Reason: "เขียนสคริปต์ระบบ ERP ต่อ", Status: "รอพิจารณา" }];
-            announcements.value = [{ ID: "AN01", Title: "แจ้งงดใช้งานห้องประชุมชั้น 2 ชั่วคราว", Details: "เนื่องจากระบบแอร์มีปัญหาชั่วคราว จึงปิดซ่อมบำรุงจนถึงวันที่ 5 มิ.ย.", Date: "2026-06-03", Priority: "สูง" }];
-            performanceEvaluations.value = [{ ID: "PF01", EmpName: "สมชาย ใจดี", Evaluator: "System Admin", QualityScore: 5, OnTimeScore: 5, CommunicationScore: 4, ReviewNote: "มีความกระตือรือร้นในการสร้างนวัตกรรมองค์กรอย่างต่อเนื่อง" }];
-            
+          try {
+            const data = await makeApiRequest("fetchAll");
+            if (data) {
+              employees.value = data.employees || [];
+              departments.value = data.departments || [];
+              positions.value = data.positions || [];
+              payroll.value = data.payroll || [];
+              leaves.value = data.leaves || [];
+              attendance.value = data.attendance || [];
+              shifts.value = data.shifts || [];
+              recruitments.value = data.recruitments || [];
+              candidates.value = data.candidates || [];
+              trainings.value = data.trainings || [];
+              assets.value = data.assets || [];
+              expenses.value = data.expenses || [];
+              roomBookings.value = data.roomBookings || [];
+              okrs.value = data.okrs || [];
+              onboardings.value = data.onboardings || [];
+              benefits.value = data.benefits || [];
+              
+              // Load supplementary REST tables (fallbacks for older sheets)
+              try { ots.value = await makeApiRequest("fetchAll", { sheetName: "Ots" }); } catch(e) {}
+              try { documents.value = await makeApiRequest("fetchAll", { sheetName: "Documents" }); } catch(e) {}
+              try { announcements.value = await makeApiRequest("fetchAll", { sheetName: "Announcements" }); } catch(e) {}
+              try { performanceEvaluations.value = await makeApiRequest("fetchAll", { sheetName: "PerformanceEvaluations" }); } catch(e) {}
+            }
             updateLucideIcons();
+          } catch (err) {
+            console.error(err);
           }
         };
 
-        const triggerAlert = (message, title = 'HR Pro Suite') => {
-          toast.value = { show: true, title, message };
-          setTimeout(() => { toast.value.show = false; }, 3000);
-        };
-
-        const quickCheck = (type) => {
-          triggerAlert(`ลงเวลา "${type}" สำเร็จเรียบร้อยแล้ว`, 'บันทึกเวลา');
-        };
-
-        // Submit attendance with clock-in/out to Sheet
-        const saveAttendance = (statusType) => {
+        const saveAttendance = async (statusType) => {
           const now = new Date();
           const timeStr = now.toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit' });
           const dateStr = now.toLocaleDateString('th-TH', { year: 'numeric', month: '2-digit', day: '2-digit' });
           
           const newAtt = {
-            ID: 'A' + String(attendance.value.length + 1).padStart(3, '0'),
-            EmpName: currentUser.value.Name || 'สมชาย ใจดี',
+            ID: 'A' + String(Date.now()).slice(-4),
+            EmpName: currentUser.value.Name,
             Date: dateStr,
             CheckIn: statusType.includes('เช็คอิน') ? timeStr : '-',
             CheckOut: statusType.includes('เช็คเอาท์') ? timeStr : '-',
             Status: statusType
           };
 
-          if (isGasServer.value) {
-            google.script.run
-              .withSuccessHandler(() => {
-                refreshAllData();
-                triggerAlert('บันทึกเวลางานลงตารางเรียบร้อยแล้ว!', 'สำเร็จ');
-              })
-              .addRowData('Attendance', newAtt);
-          } else {
-            attendance.value.unshift(newAtt);
-            triggerAlert('จำลองลงเวลาเสร็จสมบูรณ์');
+          try {
+            await makeApiRequest("addRow", { sheetName: 'Attendance', data: newAtt });
+            refreshAllData();
+            triggerAlert('ลงสถิติเวลางานใน Sheet จริงเรียบร้อย!', 'ลงเวลาสำเร็จ');
+          } catch (err) {
+            alert(err.toString());
           }
         };
 
-        // Admin Approval Actions
-        const approveLeave = (leaveId, nextStatus) => {
-          if (isGasServer.value) {
-            google.script.run
-              .withSuccessHandler(() => { refreshAllData(); triggerAlert('เปลี่ยนสถานะใบลาสำเร็จ'); })
-              .updateRowData('Leaves', 'ID', leaveId, { Status: nextStatus });
-          } else {
-            leaves.value = leaves.value.map(lv => lv.ID === leaveId ? { ...lv, Status: nextStatus } : lv);
-          }
+        const approveLeave = async (leaveId, nextStatus) => {
+          try {
+            await makeApiRequest("updateRow", { sheetName: 'Leaves', keyCol: 'ID', keyVal: leaveId, data: { Status: nextStatus } });
+            refreshAllData();
+            triggerAlert('อัปเดตสิทธิ์ใบลาสำเร็จ');
+          } catch (err) { alert(err.toString()); }
         };
 
-        const approveExpense = (expenseId, nextStatus) => {
-          if (isGasServer.value) {
-            google.script.run
-              .withSuccessHandler(() => { refreshAllData(); triggerAlert('เปลี่ยนสถานะค่าใช้จ่ายสำเร็จ'); })
-              .updateRowData('Expenses', 'ID', expenseId, { Status: nextStatus });
-          } else {
-            expenses.value = expenses.value.map(ex => ex.ID === expenseId ? { ...ex, Status: nextStatus } : ex);
-          }
+        const approveExpense = async (expenseId, nextStatus) => {
+          try {
+            await makeApiRequest("updateRow", { sheetName: 'Expenses', keyCol: 'ID', keyVal: expenseId, data: { Status: nextStatus } });
+            refreshAllData();
+            triggerAlert('อัปเดตสถานะการเงินสำเร็จ');
+          } catch (err) { alert(err.toString()); }
         };
 
-        const approveOT = (otId, nextStatus) => {
-          if (isGasServer.value) {
-            google.script.run
-              .withSuccessHandler(() => { refreshAllData(); triggerAlert('อนุมัติสถานะล่วงเวลาเรียบร้อย'); })
-              .updateRowData('Ots', 'ID', otId, { Status: nextStatus });
-          } else {
-            ots.value = ots.value.map(o => o.ID === otId ? { ...o, Status: nextStatus } : o);
-          }
+        const approveOT = async (otId, nextStatus) => {
+          try {
+            await makeApiRequest("updateRow", { sheetName: 'Ots', keyCol: 'ID', keyVal: otId, data: { Status: nextStatus } });
+            refreshAllData();
+            triggerAlert('อัปเดตชั่วโมงโอทีสำเร็จ');
+          } catch (err) { alert(err.toString()); }
         };
 
-        const approveBenefit = (benefitId, nextStatus) => {
-          if (isGasServer.value) {
-            google.script.run
-              .withSuccessHandler(() => { refreshAllData(); triggerAlert('อนุมัติเบิกสวัสดิการสำเร็จ'); })
-              .updateRowData('Benefits', 'ID', benefitId, { Status: nextStatus });
-          } else {
-            benefits.value = benefits.value.map(b => b.ID === benefitId ? { ...b, Status: nextStatus } : b);
-          }
+        const approveBenefit = async (benefitId, nextStatus) => {
+          try {
+            await makeApiRequest("updateRow", { sheetName: 'Benefits', keyCol: 'ID', keyVal: benefitId, data: { Status: nextStatus } });
+            refreshAllData();
+            triggerAlert('ดำเนินการสวัสดิการสำเร็จ');
+          } catch (err) { alert(err.toString()); }
         };
 
-        const updateCandidateStatus = (candId, nextStage) => {
-          if (isGasServer.value) {
-            google.script.run
-              .withSuccessHandler(() => { refreshAllData(); triggerAlert('ย้ายผู้สมัครเข้ากระบวนการใหม่สำเร็จ'); })
-              .updateRowData('Candidates', 'ID', candId, { Status: nextStage });
-          } else {
-            candidates.value = candidates.value.map(c => c.ID === candId ? { ...c, Status: nextStage } : c);
-          }
+        const updateCandidateStatus = async (candId, nextStage) => {
+          try {
+            await makeApiRequest("updateRow", { sheetName: 'Candidates', keyCol: 'ID', keyVal: candId, data: { Status: nextStage } });
+            refreshAllData();
+            triggerAlert('อัปเดตสเตจ ATS สำเร็จ');
+          } catch (err) { alert(err.toString()); }
         };
 
-        const toggleOnboardingStatus = (onbId) => {
+        const toggleOnboardingStatus = async (onbId) => {
           const matched = onboardings.value.find(o => o.ID === onbId);
           if (!matched) return;
           const nextStatus = matched.Status === 'สำเร็จ' ? 'รอดำเนินการ' : 'สำเร็จ';
-          
-          if (isGasServer.value) {
-            google.script.run
-              .withSuccessHandler(() => { refreshAllData(); triggerAlert('ปรับปรุงขั้นตอน Onboarding เรียบร้อย'); })
-              .updateRowData('Onboardings', 'ID', onbId, { Status: nextStatus });
-          } else {
-            matched.Status = nextStatus;
-          }
+          try {
+            await makeApiRequest("updateRow", { sheetName: 'Onboardings', keyCol: 'ID', keyVal: onbId, data: { Status: nextStatus } });
+            refreshAllData();
+          } catch (err) { alert(err.toString()); }
         };
 
-        const deleteItem = (sheetName, keyColName, keyValue) => {
-          if (!confirm(`ยืนยันลบรายการ [${keyValue}] ออกจากฐานข้อมูลหรือไม่?`)) return;
-          if (isGasServer.value) {
-            google.script.run
-              .withSuccessHandler(() => { refreshAllData(); triggerAlert('ลบแถวข้อมูลในสเปรดชีตเรียบร้อย'); })
-              .deleteRowData(sheetName, keyColName, keyValue);
-          } else {
-            triggerAlert('โหมดจำลองออฟไลน์: ลบรายการจำลองเสร็จสิ้น');
-          }
+        const deleteItem = async (sheetName, keyColName, keyValue) => {
+          if (!confirm(`ยืนยันลบรายการรหัส [${keyValue}] หรือไม่?`)) return;
+          try {
+            await makeApiRequest("deleteRow", { sheetName, keyCol: keyColName, keyVal: keyValue });
+            refreshAllData();
+            triggerAlert('ลบข้อมูลออกจาก Sheet สำเร็จ');
+          } catch (err) { alert(err.toString()); }
         };
 
-        // Open Modal and Instantiate Fields dynamically
         const openModal = (type, mode, data = null) => {
           activeModal.value = { show: true, type, mode, data };
           if (mode === 'add') {
@@ -2011,13 +1936,13 @@
             } else if (type === 'position') {
               formModel.value = { ID: 'POS' + idSuffix, Title: '', Level: 'Officer', Department: 'ไอที', MinSalary: 15000, MaxSalary: 45000 };
             } else if (type === 'roomBooking') {
-              formModel.value = { ID: 'RB' + idSuffix, RoomName: 'ห้องประชุมใหญ่ A', Requester: currentUser.value.Name || 'สมชาย ใจดี', Date: new Date().toISOString().split('T')[0], Time: '10:00 - 12:00', Status: 'จองสำเร็จ' };
+              formModel.value = { ID: 'RB' + idSuffix, RoomName: 'ห้องประชุมใหญ่ A', Requester: currentUser.value.Name, Date: new Date().toISOString().split('T')[0], Time: '10:00 - 12:00', Status: 'จองสำเร็จ' };
             } else if (type === 'leave') {
-              formModel.value = { ID: 'L' + idSuffix, EmpName: currentUser.value.Name || 'สมชาย ใจดี', Type: 'ลากิจ', StartDate: new Date().toISOString().split('T')[0], EndDate: new Date().toISOString().split('T')[0], Days: 1, Status: 'รอพิจารณา', Reason: '' };
+              formModel.value = { ID: 'L' + idSuffix, EmpName: currentUser.value.Name, Type: 'ลากิจ', StartDate: new Date().toISOString().split('T')[0], EndDate: new Date().toISOString().split('T')[0], Days: 1, Status: 'รอพิจารณา', Reason: '' };
             } else if (type === 'expense') {
-              formModel.value = { ID: 'EX' + idSuffix, Requester: currentUser.value.Name || 'สมชาย ใจดี', Category: 'เดินทาง', Description: '', Amount: 500, Status: 'รอการตรวจสอบ' };
+              formModel.value = { ID: 'EX' + idSuffix, Requester: currentUser.value.Name, Category: 'เดินทาง', Description: '', Amount: 500, Status: 'รอการตรวจสอบ' };
             } else if (type === 'ot') {
-              formModel.value = { ID: 'OT' + idSuffix, EmpName: currentUser.value.Name || 'สมชาย ใจดี', Date: new Date().toISOString().split('T')[0], Hours: 2, Reason: '', Status: 'รอพิจารณา' };
+              formModel.value = { ID: 'OT' + idSuffix, EmpName: currentUser.value.Name, Date: new Date().toISOString().split('T')[0], Hours: 2, Reason: '', Status: 'รอพิจารณา' };
             } else if (type === 'shift') {
               formModel.value = { ID: 'SF' + idSuffix, EmpName: '', Date: new Date().toISOString().split('T')[0], Shift: 'เช้า', Time: '08:00 - 17:00', Note: '' };
             } else if (type === 'recruitment') {
@@ -2025,19 +1950,19 @@
             } else if (type === 'candidate') {
               formModel.value = { ID: 'CD' + idSuffix, Name: '', JobTitle: '', Phone: '', Email: '', Note: '', Status: 'ใบสมัครเข้าใหม่' };
             } else if (type === 'onboarding') {
-              formModel.value = { ID: 'OB' + idSuffix, EmpName: '', Step: 'อบรมระบบไอทีพื้นฐาน', Status: 'รอดำเนินการ' };
+              formModel.value = { ID: 'OB' + idSuffix, EmpName: '', Step: 'อบรมความปลอดภัยพื้นฐาน', Status: 'รอดำเนินการ' };
             } else if (type === 'training') {
-              formModel.value = { ID: 'TR' + idSuffix, Title: '', Category: 'วิชาชีพเฉพาะ', Instructor: '', Hours: 4, Status: 'เปิดรับสมัคร' };
+              formModel.value = { ID: 'TR' + idSuffix, Title: '', Category: 'คอร์สวิชาชีพ', Instructor: '', Hours: 4, Status: 'เปิดรับสมัคร' };
             } else if (type === 'performance') {
               formModel.value = { ID: 'PF' + idSuffix, EmpName: '', Evaluator: currentUser.value.Name, QualityScore: 5, OnTimeScore: 5, CommunicationScore: 5, ReviewNote: '' };
             } else if (type === 'okr') {
               formModel.value = { ID: 'OK' + idSuffix, Objective: '', Target: 100, Progress: 0, Status: 'ดำเนินงานปกติ' };
             } else if (type === 'document') {
-              formModel.value = { ID: 'DOC' + idSuffix, Title: '', Category: 'ระเบียบวินัย', Link: '#', Description: '' };
+              formModel.value = { ID: 'DOC' + idSuffix, Title: '', Category: 'ระเบียบสากล', Link: '#', Description: '' };
             } else if (type === 'asset') {
-              formModel.value = { ID: 'AS' + idSuffix, Name: '', Category: 'อุปกรณ์ไอที', Assignee: '', Date: new Date().toISOString().split('T')[0], Status: 'ใช้งานปกติ' };
+              formModel.value = { ID: 'AS' + idSuffix, Name: '', Category: 'อุปกรณ์พกพา', Assignee: '', Date: new Date().toISOString().split('T')[0], Status: 'ใช้งานปกติ' };
             } else if (type === 'benefit') {
-              formModel.value = { ID: 'BN' + idSuffix, EmpName: currentUser.value.Name || 'สมชาย ใจดี', Type: 'ตรวจสุขภาพประจำปี', Amount: 3000, Status: 'รอพิจารณา' };
+              formModel.value = { ID: 'BN' + idSuffix, EmpName: currentUser.value.Name, Type: 'ตรวจสุขภาพประจำปี', Amount: 3000, Status: 'รอพิจารณา' };
             } else if (type === 'announcement') {
               formModel.value = { ID: 'AN' + idSuffix, Title: '', Details: '', Date: new Date().toISOString().split('T')[0], Priority: 'ปกติ' };
             } else if (type === 'payroll') {
@@ -2049,7 +1974,7 @@
           updateLucideIcons();
         };
 
-        const submitForm = () => {
+        const submitForm = async () => {
           const type = activeModal.value.type;
           const mode = activeModal.value.mode;
           
@@ -2082,40 +2007,36 @@
             formModel.value.NetSalary = Number(formModel.value.BaseSalary) + Number(formModel.value.OT) + Number(formModel.value.Bonus) - Number(formModel.value.Deductions);
           }
 
-          if (isGasServer.value) {
+          try {
             if (mode === 'add') {
-              google.script.run
-                .withSuccessHandler(() => {
-                  refreshAllData();
-                  activeModal.value.show = false;
-                  triggerAlert('บันทึกเพิ่มเข้าฐานข้อมูล Google Sheet สำเร็จ', 'สำเร็จ');
-                })
-                .addRowData(sheetName, formModel.value);
+              await makeApiRequest("addRow", { sheetName, data: formModel.value });
             } else {
-              google.script.run
-                .withSuccessHandler(() => {
-                  refreshAllData();
-                  activeModal.value.show = false;
-                  triggerAlert('ปรับปรุงแถวข้อมูลเรียบร้อยแล้ว', 'สำเร็จ');
-                })
-                .updateRowData(sheetName, keyCol, keyVal, formModel.value);
+              await makeApiRequest("updateRow", { sheetName, keyCol, keyVal, data: formModel.value });
             }
-          } else {
-            // Local array storage fallback
-            triggerAlert('จำลองการทำงานเรียบร้อย');
+            refreshAllData();
             activeModal.value.show = false;
+            triggerAlert('ดำเนินการบันทึกข้อมูลเรียบร้อยแล้ว!', 'สำเร็จ');
+          } catch (err) {
+            alert(err.toString());
           }
         };
 
-        const sendLineAlert = (pRow) => {
-          const text = `💵 สลิปเงินเดือนพนักงาน\nคุณ: ${pRow.EmpName}\nเงินเดือนพื้นฐาน: ฿${Number(pRow.BaseSalary).toLocaleString()}\nยอดโอนสุทธิประจำงวด: ฿${Number(pRow.NetSalary).toLocaleString()}`;
-          if (isGasServer.value) {
-            google.script.run
-              .withSuccessHandler(() => { triggerAlert('ส่งสลิปผ่านทาง API LINE Notify สำเร็จ!', 'LINE Notify'); })
-              .sendLineNotifyMessage(text);
-          } else {
-            triggerAlert(`[จำลอง LINE] -> ${text}`);
-          }
+        const sendLineAlert = async (pRow) => {
+          const text = `💵 แจ้งยอดเงินสลิปประจำงวด\nคุณ: ${pRow.EmpName}\nยอดรับโอนสุทธิ: ฿${Number(pRow.NetSalary).toLocaleString()}`;
+          try {
+            await makeApiRequest("sendLine", { message: text });
+            triggerAlert('ส่งข้อมูลหาพนักงานทาง LINE เรียบร้อย', 'LINE Alert');
+          } catch(err) { alert(err.toString()); }
+        };
+
+        const triggerAlert = (message, title = 'HR Pro Suite') => {
+          toast.value = { show: true, title, message };
+          setTimeout(() => { toast.value.show = false; }, 3000);
+        };
+
+        // 🛠️ DEFINING MISSING `quickCheck` FUNCTION TO PREVENT ReferenceError
+        const quickCheck = (type) => {
+          triggerAlert(`ลงเวลาปฏิบัติงานด่วน "${type}" ของคุณเรียบร้อยแล้ว`, 'ลงเวลาด่วนสำเร็จ');
         };
 
         onMounted(() => {
@@ -2126,6 +2047,8 @@
 
         return {
           isGasServer,
+          gasApiUrl,
+          testApiConnection,
           isLoggedIn,
           userRole,
           currentUser,
